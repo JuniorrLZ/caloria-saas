@@ -202,16 +202,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         </button>
                         <button
                             onClick={() => {
-                                if (pathname.startsWith("/food-diary")) {
+                                if (pathname.startsWith("/bioimpedance")) {
+                                    window.dispatchEvent(new CustomEvent("open-log-measurement"));
+                                } else if (pathname.startsWith("/food-diary")) {
                                     window.dispatchEvent(new CustomEvent("open-log-meal"));
                                 } else {
                                     router.push("/food-diary?logMeal=1");
                                 }
                             }}
-                            className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 text-sm"
+                            className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-[var(--color-primary)]/30 transition-all hover:scale-105 active:scale-95 text-sm"
                         >
                             <Plus className="w-4 h-4" />
-                            <span className="hidden sm:inline">Registrar Refeição</span>
+                            <span className="hidden sm:inline">
+                                {pathname.startsWith("/bioimpedance") ? "Registrar Medição" : "Registrar Refeição"}
+                            </span>
                         </button>
                         <UserMenu />
                     </div>
