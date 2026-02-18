@@ -116,6 +116,7 @@ function FoodDiaryContent() {
         snack: null,
     });
     const [loading, setLoading] = useState(true);
+    const [waterMl, setWaterMl] = useState(0);
 
     /* Modal state */
     const [modalOpen, setModalOpen] = useState(false);
@@ -144,6 +145,14 @@ function FoodDiaryContent() {
     const fetchMeals = useCallback(async () => {
         setLoading(true);
         const dateStr = toDateStr(selectedDate);
+
+        /* Fetch Water */
+        const { data: waterData } = await supabase
+            .from("water_intake")
+            .select("ml")
+            .eq("date", dateStr)
+            .maybeSingle();
+        setWaterMl(waterData?.ml || 0);
 
         const { data: mealsData } = await supabase
             .from("meals")
@@ -207,6 +216,28 @@ function FoodDiaryContent() {
         }
 
         fetchMeals();
+    };
+
+    /* ---- Add Water ---- */
+    const handleAddWater = async () => {
+        const nextMl = waterMl + 250;
+        setWaterMl(nextMl);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const dateStr = toDateStr(selectedDate);
+        const { error } = await supabase
+            .from("water_intake")
+            .upsert(
+                { user_id: user.id, date: dateStr, ml: nextMl },
+                { onConflict: "user_id,date" }
+            );
+
+        if (error) {
+            console.error("Error saving water:", error);
+            setWaterMl(waterMl); // Revert
+        }
     };
 
     /* ---- Open modal ---- */
@@ -362,20 +393,28 @@ function FoodDiaryContent() {
                                     <div className="flex items-center gap-3">
                                         <Droplets className="w-6 h-6 text-blue-500" />
                                         <span className="text-xl font-bold text-blue-900">
-                                            1,250<span className="text-sm font-normal text-blue-400">ml</span>
+                                            {waterMl.toLocaleString()}
+                                            <span className="text-sm font-normal text-blue-400">ml</span>
                                         </span>
                                     </div>
-                                    <button className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors shadow-sm shadow-blue-500/30">
+                                    <button
+                                        onClick={handleAddWater}
+                                        className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors shadow-sm shadow-blue-500/30"
+                                    >
                                         <Plus className="w-4 h-4" />
                                     </button>
                                 </div>
                                 <div className="flex justify-between mt-3 px-1">
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <div key={i} className="w-2 h-6 bg-blue-400 rounded-full" />
-                                    ))}
-                                    {[1, 2, 3].map((i) => (
-                                        <div key={i} className="w-2 h-6 bg-slate-200 rounded-full" />
-                                    ))}
+                                    {Array.from({ length: 8 }).map((_, i) => {
+                                        const filled = i < Math.floor((waterMl / 2500) * 8);
+                                        return (
+                                            <div
+                                                key={i}
+                                                className={`w-2 h-6 rounded-full ${filled ? "bg-blue-400" : "bg-slate-200"
+                                                    }`}
+                                            />
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
