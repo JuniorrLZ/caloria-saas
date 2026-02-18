@@ -400,10 +400,13 @@ function FoodDiaryContent() {
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={handleAddWater}
-                                        className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors shadow-sm shadow-blue-500/30"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddWater();
+                                        }}
+                                        className="relative z-10 w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors shadow-sm shadow-blue-500/30 cursor-pointer active:scale-95"
                                     >
-                                        <Plus className="w-4 h-4" />
+                                        <Plus className="w-4 h-4 pointer-events-none" />
                                     </button>
                                 </div>
                                 <div className="flex justify-between mt-3 px-1">
