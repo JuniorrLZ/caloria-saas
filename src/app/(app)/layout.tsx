@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     BookOpen,
@@ -21,7 +21,11 @@ import {
     Menu,
     X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabaseClient";
+
+import UserMenu from "@/components/UserMenu";
+import type { User } from "@supabase/supabase-js";
 
 const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -37,9 +41,41 @@ const navItems = [
     { label: "Settings", href: "/profile", icon: Settings },
 ];
 
+function getUserInitials(user: User | null): string {
+    if (!user) return "??";
+    const name = user.user_metadata?.full_name || user.email || "";
+    if (user.user_metadata?.full_name) {
+        const parts = user.user_metadata.full_name.trim().split(" ");
+        return (parts[0]?.[0] || "").toUpperCase() + (parts[parts.length - 1]?.[0] || "").toUpperCase();
+    }
+    return (user.email?.[0] || "?").toUpperCase();
+}
+
+function getUserDisplayName(user: User | null): string {
+    if (!user) return "User";
+    return user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+}
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getUser().then(({ data }) => {
+            setUser(data.user);
+        });
+
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
 
     const currentPage = navItems.find((item) => pathname.startsWith(item.href));
     const pageTitle = currentPage?.label || "Dashboard";
@@ -120,13 +156,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {/* User */}
                     <div className="flex items-center gap-3 mt-6 mb-2 px-2">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                            AM
+                            {getUserInitials(user)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 truncate">Alex Morgan</p>
-                            <p className="text-xs text-slate-500 truncate">alex@caloria.ai</p>
+                            <p className="text-sm font-semibold text-slate-900 truncate">
+                                {getUserDisplayName(user)}
+                            </p>
+                            <p className="text-xs text-slate-500 truncate">
+                                {user?.email || "Not signed in"}
+                            </p>
                         </div>
-                        <button className="text-slate-400 hover:text-slate-600">
+                        <button
+                            onClick={() => router.push(user ? "/profile" : "/login")}
+                            className="text-slate-400 hover:text-primary transition-colors"
+                            title={user ? "Minha conta" : "Fazer login"}
+                        >
                             <LogOut className="w-4 h-4" />
                         </button>
                     </div>
@@ -160,6 +204,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             <Plus className="w-4 h-4" />
                             <span className="hidden sm:inline">Log Meal</span>
                         </button>
+                        <UserMenu />
                     </div>
                 </header>
 
