@@ -21,12 +21,12 @@ export default function SignupPage() {
         setError(null);
 
         if (password !== confirmPassword) {
-            setError("Passwords do not match.");
+            setError("As senhas não coincidem.");
             return;
         }
 
         if (password.length < 6) {
-            setError("Password must be at least 6 characters.");
+            setError("A senha deve ter pelo menos 6 caracteres.");
             return;
         }
 
@@ -68,10 +68,10 @@ export default function SignupPage() {
                         <Flame className="w-8 h-8" />
                     </div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-                        Create your account
+                        Crie sua conta
                     </h1>
                     <p className="text-slate-500 mt-2">
-                        Start tracking with Caloria<span className="text-primary">.AI</span>
+                        Comece a rastrear com Caloria<span className="text-primary">.AI</span>
                     </p>
                 </div>
 
@@ -84,7 +84,7 @@ export default function SignupPage() {
                                 htmlFor="name"
                                 className="block text-sm font-semibold text-slate-700 mb-1.5"
                             >
-                                Full Name
+                                Nome Completo
                             </label>
                             <div className="relative">
                                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -94,7 +94,7 @@ export default function SignupPage() {
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="John Doe"
+                                    placeholder="João Silva"
                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
                                 />
                             </div>
@@ -116,7 +116,7 @@ export default function SignupPage() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@example.com"
+                                    placeholder="voce@exemplo.com"
                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
                                 />
                             </div>
@@ -128,7 +128,7 @@ export default function SignupPage() {
                                 htmlFor="password"
                                 className="block text-sm font-semibold text-slate-700 mb-1.5"
                             >
-                                Password
+                                Senha
                             </label>
                             <div className="relative">
                                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -139,7 +139,7 @@ export default function SignupPage() {
                                     minLength={6}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Minimum 6 characters"
+                                    placeholder="Mínimo 6 caracteres"
                                     className="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
                                 />
                                 <button
@@ -162,7 +162,7 @@ export default function SignupPage() {
                                 htmlFor="confirmPassword"
                                 className="block text-sm font-semibold text-slate-700 mb-1.5"
                             >
-                                Confirm Password
+                                Confirmar Senha
                             </label>
                             <div className="relative">
                                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -173,7 +173,7 @@ export default function SignupPage() {
                                     minLength={6}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    placeholder="Repeat your password"
+                                    placeholder="Repita sua senha"
                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
                                 />
                             </div>
@@ -197,7 +197,7 @@ export default function SignupPage() {
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    Create Account
+                                    Criar Conta
                                     <ArrowRight className="w-4 h-4" />
                                 </>
                             )}
@@ -207,12 +207,12 @@ export default function SignupPage() {
                     {/* Divider */}
                     <div className="mt-6 text-center">
                         <p className="text-sm text-slate-500">
-                            Already have an account?{" "}
+                            Já tem uma conta?{" "}
                             <Link
                                 href="/login"
                                 className="text-primary font-semibold hover:text-primary-dark transition-colors"
                             >
-                                Sign in
+                                Entrar
                             </Link>
                         </p>
                     </div>

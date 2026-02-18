@@ -1,159 +1,101 @@
 "use client";
 
-import { Activity, Ruler, Droplets, Zap, TrendingDown, TrendingUp, Info } from "lucide-react";
+import { Droplet, Scale, Zap, Activity, TrendingUp, TrendingDown, Minus } from "lucide-react";
+
+const metrics = [
+    { label: "Percentual de Gordura", value: "18.5%", trend: "down", color: "text-orange-500", icon: Droplet, bg: "bg-orange-50 border-orange-100", detail: "Meta: 15%" },
+    { label: "Massa Muscular", value: "62.3 kg", trend: "up", color: "text-blue-500", icon: Zap, bg: "bg-blue-50 border-blue-100", detail: "+1.2 kg este mês" },
+    { label: "Água Corporal", value: "55.2%", trend: "stable", color: "text-cyan-500", icon: Droplet, bg: "bg-cyan-50 border-cyan-100", detail: "Faixa saudável" },
+    { label: "IMC", value: "22.1", trend: "down", color: "text-green-500", icon: Scale, bg: "bg-green-50 border-green-100", detail: "Peso normal" },
+    { label: "TMB", value: "1,650 kcal", trend: "stable", color: "text-purple-500", icon: Activity, bg: "bg-purple-50 border-purple-100", detail: "Taxa Metabólica Basal" },
+    { label: "Peso Ósseo", value: "3.1 kg", trend: "stable", color: "text-slate-500", icon: Scale, bg: "bg-slate-50 border-slate-200", detail: "Dentro da faixa normal" },
+];
+
+const historyData = [
+    { date: "15 Mai", fat: 19.2, muscle: 61.5 },
+    { date: "01 Jun", fat: 18.9, muscle: 61.8 },
+    { date: "15 Jun", fat: 18.7, muscle: 62.0 },
+    { date: "01 Jul", fat: 18.5, muscle: 62.3 },
+];
+
+function TrendIcon({ trend }: { trend: string }) {
+    if (trend === "up") return <TrendingUp className="w-4 h-4 text-green-500" />;
+    if (trend === "down") return <TrendingDown className="w-4 h-4 text-red-500" />;
+    return <Minus className="w-4 h-4 text-slate-400" />;
+}
 
 export default function BioimpedancePage() {
     return (
-        <div className="max-w-7xl mx-auto px-4 py-8">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+        <div className="p-4 lg:p-8">
+            <div className="max-w-7xl mx-auto space-y-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Body Composition Analysis</h1>
-                    <p className="text-slate-500 mt-2">Full bioimpedance breakdown from your last assessment on <span className="font-semibold text-slate-700">Oct 20, 2024</span>.</p>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Análise de Bioimpedância</h1>
+                    <p className="text-slate-500 mt-2">Visão detalhada da sua composição corporal</p>
                 </div>
-                <button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2">
-                    <Activity className="w-4 h-4" /> New Assessment
-                </button>
-            </div>
 
-            {/* Score Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <ScoreCard label="Body Fat" value="18.2%" change="-1.4%" trend="down" color="bg-green-50 text-green-600" />
-                <ScoreCard label="Muscle Mass" value="68.5 kg" change="+0.8 kg" trend="up" color="bg-blue-50 text-blue-600" />
-                <ScoreCard label="Water Level" value="55.3%" change="+0.2%" trend="up" color="bg-cyan-50 text-cyan-600" />
-                <ScoreCard label="BMR" value="1,740 kcal" change="+25 kcal" trend="up" color="bg-purple-50 text-purple-600" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Composition Chart */}
-                <div className="lg:col-span-2 bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-slate-100">
-                    <h2 className="text-lg font-bold text-slate-900 mb-6">Body Composition Breakdown</h2>
-                    <div className="flex items-center justify-center py-8">
-                        <div className="relative w-48 h-48">
-                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#e2e8f0" strokeWidth="12" />
-                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#3b82f6" strokeWidth="12" strokeDasharray="251.2" strokeDashoffset="80" strokeLinecap="round" />
-                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f59e0b" strokeWidth="12" strokeDasharray="251.2" strokeDashoffset="200" strokeLinecap="round" />
-                                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#10b981" strokeWidth="12" strokeDasharray="251.2" strokeDashoffset="235" strokeLinecap="round" />
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-2xl font-bold text-slate-900">82.4</span>
-                                <span className="text-xs text-slate-500">kg total</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {metrics.map((m) => (
+                        <div key={m.label} className={`rounded-2xl p-6 border ${m.bg} shadow-sm hover:shadow-md transition-shadow`}>
+                            <div className="flex items-start justify-between mb-4">
+                                <div className={`p-3 rounded-xl ${m.bg}`}>
+                                    <m.icon className={`w-6 h-6 ${m.color}`} />
+                                </div>
+                                <TrendIcon trend={m.trend} />
                             </div>
+                            <h3 className="text-sm text-slate-500 font-medium uppercase tracking-wider">{m.label}</h3>
+                            <p className="text-3xl font-bold text-slate-900 mt-1">{m.value}</p>
+                            <p className="text-xs text-slate-400 mt-2">{m.detail}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-slate-100">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 className="text-lg font-bold text-slate-900">Histórico de Composição</h2>
+                            <p className="text-sm text-slate-500">Acompanhe suas mudanças ao longo do tempo</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 mt-4">
-                        <LegendItem color="bg-blue-500" label="Muscle" value="68.5 kg" pct="83.1%" />
-                        <LegendItem color="bg-amber-500" label="Fat" value="11.2 kg" pct="13.6%" />
-                        <LegendItem color="bg-emerald-500" label="Bone" value="2.7 kg" pct="3.3%" />
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-slate-100">
+                                    <th className="text-left py-3 px-4 font-medium text-slate-500">Data</th>
+                                    <th className="text-left py-3 px-4 font-medium text-slate-500">% Gordura</th>
+                                    <th className="text-left py-3 px-4 font-medium text-slate-500">Massa Muscular</th>
+                                    <th className="text-left py-3 px-4 font-medium text-slate-500">Variação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {historyData.map((row, i) => (
+                                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                        <td className="py-3 px-4 font-medium text-slate-900">{row.date}</td>
+                                        <td className="py-3 px-4 text-slate-700">{row.fat}%</td>
+                                        <td className="py-3 px-4 text-slate-700">{row.muscle} kg</td>
+                                        <td className="py-3 px-4">
+                                            {i === 0 ? (
+                                                <span className="text-slate-400">—</span>
+                                            ) : (
+                                                <span className="text-green-600 font-medium">
+                                                    -{(historyData[i - 1].fat - row.fat).toFixed(1)}% gordura
+                                                </span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {/* Segmental Analysis */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                    <h2 className="text-lg font-bold text-slate-900 mb-6">Segmental Analysis</h2>
-                    <div className="space-y-4">
-                        <SegmentBar label="Right Arm" muscle="3.8 kg" fat="0.9 kg" pct={82} />
-                        <SegmentBar label="Left Arm" muscle="3.6 kg" fat="1.0 kg" pct={78} />
-                        <SegmentBar label="Trunk" muscle="28.0 kg" fat="5.2 kg" pct={84} />
-                        <SegmentBar label="Right Leg" muscle="11.2 kg" fat="2.5 kg" pct={82} />
-                        <SegmentBar label="Left Leg" muscle="11.0 kg" fat="2.6 kg" pct={81} />
-                    </div>
-                    <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                        <div className="flex items-start gap-3">
-                            <Info className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-                            <div>
-                                <p className="text-sm font-medium text-blue-900">AI Insight</p>
-                                <p className="text-xs text-blue-700 mt-1">Your left arm shows slightly less muscle mass. Consider adding unilateral exercises to balance asymmetry.</p>
-                            </div>
-                        </div>
-                    </div>
+                <div className="bg-gradient-to-br from-[var(--color-primary)]/10 to-transparent rounded-2xl p-8 border border-[var(--color-primary)]/10">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">💡 Insight de IA</h3>
+                    <p className="text-slate-600 leading-relaxed">
+                        Sua massa muscular aumentou 1,3% no último mês enquanto o percentual de gordura diminuiu 0,7%.
+                        Isso indica um progresso sólido de recomposição corporal. Continue com seu plano de treino atual e mantenha
+                        a ingestão de proteínas acima de 130g diárias para resultados ótimos.
+                    </p>
                 </div>
-            </div>
-
-            {/* History Table */}
-            <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-slate-900">Assessment History</h2>
-                    <button className="text-[var(--color-primary)] text-sm font-medium hover:underline">View All</button>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 text-xs text-slate-500 uppercase tracking-wider">
-                            <tr>
-                                <th className="px-6 py-4 font-semibold">Date</th>
-                                <th className="px-6 py-4 font-semibold">Weight</th>
-                                <th className="px-6 py-4 font-semibold">Body Fat</th>
-                                <th className="px-6 py-4 font-semibold">Muscle Mass</th>
-                                <th className="px-6 py-4 font-semibold">Water</th>
-                                <th className="px-6 py-4 font-semibold">BMR</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            <tr className="bg-[var(--color-primary)]/5 font-medium">
-                                <td className="px-6 py-4 text-[var(--color-primary)] font-bold">Oct 20</td>
-                                <td className="px-6 py-4 text-slate-900">82.4 kg</td>
-                                <td className="px-6 py-4 text-green-600">18.2%</td>
-                                <td className="px-6 py-4 text-slate-900">68.5 kg</td>
-                                <td className="px-6 py-4 text-slate-900">55.3%</td>
-                                <td className="px-6 py-4 text-slate-900">1,740</td>
-                            </tr>
-                            <tr className="hover:bg-slate-50">
-                                <td className="px-6 py-4 text-slate-600">Sep 20</td>
-                                <td className="px-6 py-4 text-slate-600">83.2 kg</td>
-                                <td className="px-6 py-4 text-slate-600">19.6%</td>
-                                <td className="px-6 py-4 text-slate-600">67.7 kg</td>
-                                <td className="px-6 py-4 text-slate-600">55.1%</td>
-                                <td className="px-6 py-4 text-slate-600">1,715</td>
-                            </tr>
-                            <tr className="hover:bg-slate-50">
-                                <td className="px-6 py-4 text-slate-600">Aug 18</td>
-                                <td className="px-6 py-4 text-slate-600">84.0 kg</td>
-                                <td className="px-6 py-4 text-slate-600">20.1%</td>
-                                <td className="px-6 py-4 text-slate-600">66.5 kg</td>
-                                <td className="px-6 py-4 text-slate-600">54.8%</td>
-                                <td className="px-6 py-4 text-slate-600">1,700</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function ScoreCard({ label, value, change, trend, color }: { label: string; value: string; change: string; trend: string; color: string }) {
-    return (
-        <div className={`rounded-2xl p-5 border ${color} border-current/10`}>
-            <p className="text-xs font-semibold uppercase tracking-wider opacity-70 mb-2">{label}</p>
-            <h3 className="text-2xl font-bold">{value}</h3>
-            <div className="flex items-center gap-1 mt-2 text-xs font-medium">
-                {trend === "down" ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
-                <span>{change}</span>
-            </div>
-        </div>
-    );
-}
-
-function LegendItem({ color, label, value, pct }: { color: string; label: string; value: string; pct: string }) {
-    return (
-        <div className="text-center">
-            <div className={`w-3 h-3 rounded-full ${color} mx-auto mb-2`} />
-            <p className="text-sm font-bold text-slate-900">{value}</p>
-            <p className="text-xs text-slate-500">{label} ({pct})</p>
-        </div>
-    );
-}
-
-function SegmentBar({ label, muscle, fat, pct }: { label: string; muscle: string; fat: string; pct: number }) {
-    return (
-        <div>
-            <div className="flex justify-between text-xs mb-1.5">
-                <span className="font-semibold text-slate-700">{label}</span>
-                <span className="text-slate-400">{muscle} muscle • {fat} fat</span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${pct}%` }} />
             </div>
         </div>
     );

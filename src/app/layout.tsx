@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Caloria.AI - Smart Nutrition Tracking",
-  description: "AI-powered nutrition tracking, meal planning, and health analytics platform",
+  title: "Caloria.AI - Rastreamento Nutricional Inteligente",
+  description: "Plataforma de rastreamento nutricional, planejamento de refeições e análises de saúde com IA",
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

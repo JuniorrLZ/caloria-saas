@@ -16,8 +16,8 @@ function getUserInitials(user: SupabaseUser | null): string {
 }
 
 function getUserDisplayName(user: SupabaseUser | null): string {
-    if (!user) return "User";
-    return user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+    if (!user) return "Usuário";
+    return user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuário";
 }
 
 export default function UserMenu() {

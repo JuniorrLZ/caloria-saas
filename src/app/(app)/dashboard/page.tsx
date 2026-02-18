@@ -11,9 +11,9 @@ export default function DashboardPage() {
                     {/* Kcal Consumed */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
                         <div className="z-10">
-                            <p className="text-slate-500 text-sm font-medium mb-1">Kcal Consumed</p>
-                            <h3 className="text-3xl font-bold text-slate-900">1,450</h3>
-                            <p className="text-xs text-slate-400 mt-2">72% of daily goal</p>
+                            <p className="text-slate-500 text-sm font-medium mb-1">Kcal Consumidas</p>
+                            <h3 className="text-3xl font-bold text-slate-900">1.450</h3>
+                            <p className="text-xs text-slate-400 mt-2">72% da meta diária</p>
                         </div>
                         <div className="relative w-20 h-20 flex items-center justify-center">
                             <svg className="w-full h-full transform -rotate-90">
@@ -29,12 +29,12 @@ export default function DashboardPage() {
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <HourglassIcon className="w-16 h-16 text-[var(--color-primary)]" />
                         </div>
-                        <p className="text-slate-500 text-sm font-medium mb-1">Remaining</p>
+                        <p className="text-slate-500 text-sm font-medium mb-1">Restante</p>
                         <h3 className="text-3xl font-bold text-slate-900">550 <span className="text-lg font-normal text-slate-400">kcal</span></h3>
                         <div className="mt-4 w-full bg-slate-100 rounded-full h-2">
                             <div className="bg-slate-400 h-2 rounded-full" style={{ width: "28%" }} />
                         </div>
-                        <p className="text-xs text-slate-400 mt-2">Budget available for dinner</p>
+                        <p className="text-xs text-slate-400 mt-2">Saldo disponível para o jantar</p>
                     </div>
 
                     {/* Daily Goal */}
@@ -42,11 +42,11 @@ export default function DashboardPage() {
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Flag className="w-16 h-16 text-green-500" />
                         </div>
-                        <p className="text-slate-500 text-sm font-medium mb-1">Daily Goal</p>
-                        <h3 className="text-3xl font-bold text-slate-900">2,000 <span className="text-lg font-normal text-slate-400">kcal</span></h3>
+                        <p className="text-slate-500 text-sm font-medium mb-1">Meta Diária</p>
+                        <h3 className="text-3xl font-bold text-slate-900">2.000 <span className="text-lg font-normal text-slate-400">kcal</span></h3>
                         <div className="flex items-center gap-2 mt-4">
-                            <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full font-medium">On Track</span>
-                            <span className="text-xs text-slate-400">Maintained for 5 days</span>
+                            <span className="bg-green-100 text-green-600 text-xs px-2 py-1 rounded-full font-medium">No Caminho</span>
+                            <span className="text-xs text-slate-400">Mantido por 5 dias</span>
                         </div>
                     </div>
                 </div>
@@ -59,13 +59,13 @@ export default function DashboardPage() {
                         <div className="bg-white rounded-2xl p-6 lg:p-8 shadow-sm border border-slate-100">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h2 className="text-lg font-bold text-slate-900">Weight Progress</h2>
-                                    <p className="text-sm text-slate-500">Last 30 Days Trend</p>
+                                    <h2 className="text-lg font-bold text-slate-900">Progresso de Peso</h2>
+                                    <p className="text-sm text-slate-500">Tendência dos Últimos 30 Dias</p>
                                 </div>
                                 <select className="bg-slate-50 border-none text-sm text-slate-600 rounded-lg py-2 pl-3 pr-8 focus:ring-2 focus:ring-[var(--color-primary)]/20">
-                                    <option>Last 30 Days</option>
-                                    <option>Last 3 Months</option>
-                                    <option>Last Year</option>
+                                    <option>Últimos 30 Dias</option>
+                                    <option>Últimos 3 Meses</option>
+                                    <option>Último Ano</option>
                                 </select>
                             </div>
                             {/* Chart Placeholder */}
@@ -85,16 +85,16 @@ export default function DashboardPage() {
                             {/* Stats Footer */}
                             <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
                                 <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wide">Current</p>
-                                    <p className="text-lg font-bold text-slate-900">74.5 kg</p>
+                                    <p className="text-xs text-slate-500 uppercase tracking-wide">Atual</p>
+                                    <p className="text-lg font-bold text-slate-900">74,5 kg</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wide">Start</p>
-                                    <p className="text-lg font-bold text-slate-900">78.2 kg</p>
+                                    <p className="text-xs text-slate-500 uppercase tracking-wide">Início</p>
+                                    <p className="text-lg font-bold text-slate-900">78,2 kg</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-500 uppercase tracking-wide">Change</p>
-                                    <p className="text-lg font-bold text-green-500">-3.7 kg</p>
+                                    <p className="text-xs text-slate-500 uppercase tracking-wide">Variação</p>
+                                    <p className="text-lg font-bold text-green-500">-3,7 kg</p>
                                 </div>
                             </div>
                         </div>
@@ -103,8 +103,8 @@ export default function DashboardPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 flex items-center justify-between">
                                 <div>
-                                    <h3 className="font-bold text-slate-900">Water Intake</h3>
-                                    <p className="text-sm text-slate-500">1,250ml / 2,500ml</p>
+                                    <h3 className="font-bold text-slate-900">Ingestão de Água</h3>
+                                    <p className="text-sm text-slate-500">1.250ml / 2.500ml</p>
                                 </div>
                                 <button className="w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 transition-all active:scale-95">
                                     <Plus className="w-5 h-5" />
@@ -112,8 +112,8 @@ export default function DashboardPage() {
                             </div>
                             <div className="bg-orange-50 rounded-2xl p-6 border border-orange-100 flex items-center justify-between">
                                 <div>
-                                    <h3 className="font-bold text-slate-900">Steps</h3>
-                                    <p className="text-sm text-slate-500">6,542 / 10,000</p>
+                                    <h3 className="font-bold text-slate-900">Passos</h3>
+                                    <p className="text-sm text-slate-500">6.542 / 10.000</p>
                                 </div>
                                 <div className="w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
                                     <Footprints className="w-5 h-5" />
@@ -127,14 +127,14 @@ export default function DashboardPage() {
                         {/* Macronutrients */}
                         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-lg font-bold text-slate-900">Macronutrients</h2>
-                                <button className="text-[var(--color-primary)] text-sm font-medium hover:underline">Details</button>
+                                <h2 className="text-lg font-bold text-slate-900">Macronutrientes</h2>
+                                <button className="text-[var(--color-primary)] text-sm font-medium hover:underline">Detalhes</button>
                             </div>
                             <div className="space-y-6">
                                 {/* Protein */}
                                 <div>
                                     <div className="flex justify-between mb-2">
-                                        <span className="text-sm font-medium text-slate-700">Protein</span>
+                                        <span className="text-sm font-medium text-slate-700">Proteína</span>
                                         <span className="text-sm text-slate-500">120g / 150g</span>
                                     </div>
                                     <div className="w-full bg-slate-100 rounded-full h-3">
@@ -147,7 +147,7 @@ export default function DashboardPage() {
                                 {/* Carbs */}
                                 <div>
                                     <div className="flex justify-between mb-2">
-                                        <span className="text-sm font-medium text-slate-700">Carbs</span>
+                                        <span className="text-sm font-medium text-slate-700">Carboidratos</span>
                                         <span className="text-sm text-slate-500">150g / 300g</span>
                                     </div>
                                     <div className="w-full bg-slate-100 rounded-full h-3">
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                                 {/* Fats */}
                                 <div>
                                     <div className="flex justify-between mb-2">
-                                        <span className="text-sm font-medium text-slate-700">Fats</span>
+                                        <span className="text-sm font-medium text-slate-700">Gorduras</span>
                                         <span className="text-sm text-slate-500">45g / 65g</span>
                                     </div>
                                     <div className="w-full bg-slate-100 rounded-full h-3">
@@ -175,14 +175,14 @@ export default function DashboardPage() {
 
                         {/* Recent Meals */}
                         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex-1">
-                            <h2 className="text-lg font-bold text-slate-900 mb-4">Recent Meals</h2>
+                            <h2 className="text-lg font-bold text-slate-900 mb-4">Refeições Recentes</h2>
                             <div className="relative pl-4 border-l-2 border-slate-100 space-y-6">
                                 <div className="relative">
                                     <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-green-500 ring-4 ring-white" />
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <p className="text-xs text-slate-400 uppercase font-semibold mb-1">Breakfast • 08:30 AM</p>
-                                            <h4 className="text-sm font-medium text-slate-900">Oatmeal &amp; Berries</h4>
+                                            <p className="text-xs text-slate-400 uppercase font-semibold mb-1">Café da Manhã • 08:30</p>
+                                            <h4 className="text-sm font-medium text-slate-900">Aveia &amp; Frutas Vermelhas</h4>
                                         </div>
                                         <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-md">350 kcal</span>
                                     </div>
@@ -191,8 +191,8 @@ export default function DashboardPage() {
                                     <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-orange-500 ring-4 ring-white" />
                                     <div className="flex items-start justify-between">
                                         <div>
-                                            <p className="text-xs text-slate-400 uppercase font-semibold mb-1">Lunch • 01:15 PM</p>
-                                            <h4 className="text-sm font-medium text-slate-900">Grilled Chicken Salad</h4>
+                                            <p className="text-xs text-slate-400 uppercase font-semibold mb-1">Almoço • 13:15</p>
+                                            <h4 className="text-sm font-medium text-slate-900">Salada de Frango Grelhado</h4>
                                         </div>
                                         <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-md">550 kcal</span>
                                     </div>
@@ -201,11 +201,11 @@ export default function DashboardPage() {
                                     <div className="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-slate-300 ring-4 ring-white" />
                                     <div className="flex items-start justify-between opacity-50">
                                         <div>
-                                            <p className="text-xs text-slate-400 uppercase font-semibold mb-1">Dinner • Upcoming</p>
-                                            <h4 className="text-sm font-medium text-slate-900 italic">Not logged yet</h4>
+                                            <p className="text-xs text-slate-400 uppercase font-semibold mb-1">Jantar • Em breve</p>
+                                            <h4 className="text-sm font-medium text-slate-900 italic">Ainda não registrado</h4>
                                         </div>
                                         <button className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-xs font-bold flex items-center gap-1">
-                                            <Plus className="w-3 h-3" /> Add
+                                            <Plus className="w-3 h-3" /> Adicionar
                                         </button>
                                     </div>
                                 </div>

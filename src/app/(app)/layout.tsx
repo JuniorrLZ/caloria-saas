@@ -28,17 +28,17 @@ import UserMenu from "@/components/UserMenu";
 import type { User } from "@supabase/supabase-js";
 
 const navItems = [
-    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Food Diary", href: "/food-diary", icon: BookOpen },
-    { label: "Bioimpedance", href: "/bioimpedance", icon: Activity },
-    { label: "Community", href: "/community", icon: Users },
-    { label: "Progress", href: "/progress", icon: TrendingUp },
-    { label: "Recipes", href: "/recipes", icon: ChefHat },
-    { label: "Training Plan", href: "/training", icon: Dumbbell },
-    { label: "Nutrition Calc", href: "/calculator", icon: Calculator },
-    { label: "Health Results", href: "/calculator-results", icon: HeartPulse },
-    { label: "Subscription", href: "/subscription", icon: CreditCard },
-    { label: "Settings", href: "/profile", icon: Settings },
+    { label: "Painel", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Diário Alimentar", href: "/food-diary", icon: BookOpen },
+    { label: "Bioimpedância", href: "/bioimpedance", icon: Activity },
+    { label: "Comunidade", href: "/community", icon: Users },
+    { label: "Progresso", href: "/progress", icon: TrendingUp },
+    { label: "Receitas", href: "/recipes", icon: ChefHat },
+    { label: "Plano de Treino", href: "/training", icon: Dumbbell },
+    { label: "Calculadora", href: "/calculator", icon: Calculator },
+    { label: "Resultados", href: "/calculator-results", icon: HeartPulse },
+    { label: "Assinatura", href: "/subscription", icon: CreditCard },
+    { label: "Configurações", href: "/profile", icon: Settings },
 ];
 
 function getUserInitials(user: User | null): string {
@@ -52,8 +52,8 @@ function getUserInitials(user: User | null): string {
 }
 
 function getUserDisplayName(user: User | null): string {
-    if (!user) return "User";
-    return user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+    if (!user) return "Usuário";
+    return user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuário";
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -78,7 +78,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }, []);
 
     const currentPage = navItems.find((item) => pathname.startsWith(item.href));
-    const pageTitle = currentPage?.label || "Dashboard";
+    const pageTitle = currentPage?.label || "Painel";
 
     return (
         <div className="bg-[var(--color-background-light)] text-slate-800 font-[var(--font-display)] h-screen flex overflow-hidden selection:bg-primary/30">
@@ -144,12 +144,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="p-4 mt-auto">
                     <div className="bg-slate-900 rounded-2xl p-5 relative overflow-hidden">
                         <div className="absolute top-0 right-0 -mt-2 -mr-2 w-20 h-20 bg-primary rounded-full blur-2xl opacity-40" />
-                        <h3 className="text-white font-semibold relative z-10">Upgrade to Pro</h3>
+                        <h3 className="text-white font-semibold relative z-10">Upgrade para Pro</h3>
                         <p className="text-slate-400 text-sm mt-1 mb-4 relative z-10">
-                            Get detailed macro analysis and unlimited AI recipes.
+                            Análise detalhada de macros e receitas ilimitadas com IA.
                         </p>
                         <button className="w-full bg-primary hover:bg-primary-dark text-white text-sm font-medium py-2.5 rounded-lg transition-colors relative z-10">
-                            Upgrade Now
+                            Assinar Agora
                         </button>
                     </div>
 
@@ -163,7 +163,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                 {getUserDisplayName(user)}
                             </p>
                             <p className="text-xs text-slate-500 truncate">
-                                {user?.email || "Not signed in"}
+                                {user?.email || "Não conectado"}
                             </p>
                         </div>
                         <button
@@ -211,7 +211,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 text-sm"
                         >
                             <Plus className="w-4 h-4" />
-                            <span className="hidden sm:inline">Log Meal</span>
+                            <span className="hidden sm:inline">Registrar Refeição</span>
                         </button>
                         <UserMenu />
                     </div>

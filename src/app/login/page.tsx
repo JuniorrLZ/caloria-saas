@@ -50,10 +50,10 @@ export default function LoginPage() {
                         <Flame className="w-8 h-8" />
                     </div>
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-                        Welcome back
+                        Bem-vindo de volta
                     </h1>
                     <p className="text-slate-500 mt-2">
-                        Sign in to your Caloria<span className="text-primary">.AI</span> account
+                        Entre na sua conta Caloria<span className="text-primary">.AI</span>
                     </p>
                 </div>
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@example.com"
+                                    placeholder="voce@exemplo.com"
                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm"
                                 />
                             </div>
@@ -88,7 +88,7 @@ export default function LoginPage() {
                                 htmlFor="password"
                                 className="block text-sm font-semibold text-slate-700 mb-1.5"
                             >
-                                Password
+                                Senha
                             </label>
                             <div className="relative">
                                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -134,7 +134,7 @@ export default function LoginPage() {
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    Sign In
+                                    Entrar
                                     <ArrowRight className="w-4 h-4" />
                                 </>
                             )}
@@ -144,12 +144,12 @@ export default function LoginPage() {
                     {/* Divider */}
                     <div className="mt-6 text-center">
                         <p className="text-sm text-slate-500">
-                            Don&apos;t have an account?{" "}
+                            Não tem uma conta?{" "}
                             <Link
                                 href="/signup"
                                 className="text-primary font-semibold hover:text-primary-dark transition-colors"
                             >
-                                Create account
+                                Criar conta
                             </Link>
                         </p>
                     </div>

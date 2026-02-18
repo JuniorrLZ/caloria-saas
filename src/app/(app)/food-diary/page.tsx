@@ -53,14 +53,14 @@ function toDateStr(d: Date): string {
 function formatDate(d: Date): string {
     const today = new Date();
     const isToday = toDateStr(d) === toDateStr(today);
-    const month = d.toLocaleString("en-US", { month: "short" });
+    const month = d.toLocaleString("pt-BR", { month: "short" });
     const day = d.getDate();
-    const weekday = d.toLocaleString("en-US", { weekday: "long" });
-    return isToday ? `Today, ${month} ${day}` : `${month} ${day}`;
+    const weekday = d.toLocaleString("pt-BR", { weekday: "long" });
+    return isToday ? `Hoje, ${month} ${day}` : `${month} ${day}`;
 }
 
 function getWeekday(d: Date): string {
-    return d.toLocaleString("en-US", { weekday: "long" });
+    return d.toLocaleString("pt-BR", { weekday: "long" });
 }
 
 const MEAL_CONFIG: Record<
@@ -68,22 +68,22 @@ const MEAL_CONFIG: Record<
     { label: string; icon: React.ReactNode; iconBg: string }
 > = {
     breakfast: {
-        label: "Breakfast",
+        label: "Café da Manhã",
         icon: <Sun className="w-5 h-5" />,
         iconBg: "bg-orange-100 text-orange-600",
     },
     lunch: {
-        label: "Lunch",
+        label: "Almoço",
         icon: <Sunset className="w-5 h-5" />,
         iconBg: "bg-yellow-100 text-yellow-600",
     },
     dinner: {
-        label: "Dinner",
+        label: "Jantar",
         icon: <Moon className="w-5 h-5" />,
         iconBg: "bg-indigo-100 text-indigo-600",
     },
     snack: {
-        label: "Snacks",
+        label: "Lanches",
         icon: <Cookie className="w-5 h-5" />,
         iconBg: "bg-emerald-100 text-emerald-600",
     },
@@ -241,7 +241,7 @@ function FoodDiaryContent() {
                 </div>
                 <div className="flex items-center gap-6 mt-4 sm:mt-0 w-full sm:w-auto justify-center sm:justify-end border-t sm:border-t-0 border-slate-100 pt-4 sm:pt-0">
                     <div className="text-center">
-                        <span className="block text-xs text-slate-500 font-medium uppercase tracking-wide">Calories</span>
+                        <span className="block text-xs text-slate-500 font-medium uppercase tracking-wide">Calorias</span>
                         <span className="block text-lg font-bold text-slate-800">
                             {totalCalories.toLocaleString()}{" "}
                             <span className="text-sm font-normal text-slate-400">/ {GOALS.calories.toLocaleString()}</span>
@@ -249,7 +249,7 @@ function FoodDiaryContent() {
                     </div>
                     <div className="h-8 w-px bg-slate-200" />
                     <div className="text-center">
-                        <span className="block text-xs text-slate-500 font-medium uppercase tracking-wide">Net Carbs</span>
+                        <span className="block text-xs text-slate-500 font-medium uppercase tracking-wide">Carb. Líq.</span>
                         <span className="block text-lg font-bold text-[var(--color-primary)]">{totalCarbs}g</span>
                     </div>
                 </div>
@@ -283,13 +283,13 @@ function FoodDiaryContent() {
                                                 <div className={`${cfg.iconBg} p-3 rounded-full`}>{cfg.icon}</div>
                                             </div>
                                             <p className="text-slate-500 font-medium mb-4">
-                                                You haven&apos;t logged {cfg.label.toLowerCase()} yet
+                                                Você ainda não registrou {cfg.label.toLowerCase()}
                                             </p>
                                             <button
                                                 onClick={() => openModal(mt)}
                                                 className="bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 text-[var(--color-primary)] px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2"
                                             >
-                                                <Plus className="w-4 h-4" /> Log {cfg.label}
+                                                <Plus className="w-4 h-4" /> Registrar {cfg.label}
                                             </button>
                                         </div>
                                     </div>
@@ -315,7 +315,7 @@ function FoodDiaryContent() {
                     <div className="lg:col-span-1 space-y-6">
                         {/* Daily Summary */}
                         <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 sticky top-24">
-                            <h3 className="font-bold text-lg text-slate-900 mb-6">Daily Summary</h3>
+                            <h3 className="font-bold text-lg text-slate-900 mb-6">Resumo Diário</h3>
                             <div className="flex flex-col items-center justify-center mb-8 relative">
                                 <div className="relative w-40 h-40">
                                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -336,27 +336,27 @@ function FoodDiaryContent() {
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                                         <span className="text-3xl font-bold text-slate-900">{caloriesLeft.toLocaleString()}</span>
-                                        <span className="text-xs text-slate-500 font-medium uppercase mt-1">Left</span>
+                                        <span className="text-xs text-slate-500 font-medium uppercase mt-1">Restante</span>
                                     </div>
                                 </div>
                                 <div className="mt-4 text-center">
                                     <p className="text-sm text-slate-500">
-                                        {totalCalories.toLocaleString()} consumed of {GOALS.calories.toLocaleString()} goal
+                                        {totalCalories.toLocaleString()} consumidas de {GOALS.calories.toLocaleString()} meta
                                     </p>
                                 </div>
                             </div>
                             {/* Macro Bars */}
                             <div className="space-y-5">
-                                <MacroBar label="Protein" current={`${totalProtein}g`} goal={`${GOALS.protein}g`} pct={Math.min((totalProtein / GOALS.protein) * 100, 100)} color="bg-indigo-500" />
-                                <MacroBar label="Carbs" current={`${totalCarbs}g`} goal={`${GOALS.carbs}g`} pct={Math.min((totalCarbs / GOALS.carbs) * 100, 100)} color="bg-emerald-500" />
-                                <MacroBar label="Fat" current={`${totalFat}g`} goal={`${GOALS.fat}g`} pct={Math.min((totalFat / GOALS.fat) * 100, 100)} color="bg-orange-500" />
+                                <MacroBar label="Proteína" current={`${totalProtein}g`} goal={`${GOALS.protein}g`} pct={Math.min((totalProtein / GOALS.protein) * 100, 100)} color="bg-indigo-500" />
+                                <MacroBar label="Carboidratos" current={`${totalCarbs}g`} goal={`${GOALS.carbs}g`} pct={Math.min((totalCarbs / GOALS.carbs) * 100, 100)} color="bg-emerald-500" />
+                                <MacroBar label="Gordura" current={`${totalFat}g`} goal={`${GOALS.fat}g`} pct={Math.min((totalFat / GOALS.fat) * 100, 100)} color="bg-orange-500" />
                             </div>
                             <hr className="border-slate-100 my-6" />
                             {/* Water Tracker (static for now) */}
                             <div>
                                 <div className="flex items-center justify-between mb-4">
-                                    <h4 className="font-bold text-slate-800 text-sm">Water Intake</h4>
-                                    <span className="text-xs font-medium px-2 py-1 bg-blue-50 text-blue-600 rounded">Target: 2500ml</span>
+                                    <h4 className="font-bold text-slate-800 text-sm">Ingestão de Água</h4>
+                                    <span className="text-xs font-medium px-2 py-1 bg-blue-50 text-blue-600 rounded">Meta: 2500ml</span>
                                 </div>
                                 <div className="bg-blue-50 rounded-xl p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -455,7 +455,7 @@ function MealSection({
                         onClick={onAddFood}
                         className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm font-medium flex items-center gap-2 transition-colors"
                     >
-                        <PlusCircle className="w-5 h-5" /> Add Food
+                        <PlusCircle className="w-5 h-5" /> Adicionar Alimento
                     </button>
                 </div>
             </div>
@@ -512,11 +512,11 @@ function LogMealModal({
 
     const handleSave = async () => {
         if (!foodName.trim()) {
-            setError("Food name is required");
+            setError("Nome do alimento é obrigatório");
             return;
         }
         if (!calories || Number(calories) < 0) {
-            setError("Calories is required");
+            setError("Calorias é obrigatório");
             return;
         }
 
@@ -527,7 +527,7 @@ function LogMealModal({
             const { data: userData } = await supabase.auth.getUser();
             const userId = userData.user?.id;
             if (!userId) {
-                setError("You must be logged in");
+                setError("Você precisa estar logado");
                 setSaving(false);
                 return;
             }
@@ -552,7 +552,7 @@ function LogMealModal({
                     .single();
 
                 if (mealError || !newMeal) {
-                    setError(mealError?.message || "Failed to create meal");
+                    setError(mealError?.message || "Falha ao criar refeição");
                     setSaving(false);
                     return;
                 }
@@ -579,7 +579,7 @@ function LogMealModal({
 
             onSaved();
         } catch {
-            setError("An unexpected error occurred");
+            setError("Ocorreu um erro inesperado");
             setSaving(false);
         }
     };
@@ -592,7 +592,7 @@ function LogMealModal({
             {/* Modal */}
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                    <h2 className="text-lg font-bold text-slate-900">Log Food</h2>
+                    <h2 className="text-lg font-bold text-slate-900">Registrar Alimento</h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
@@ -607,46 +607,46 @@ function LogMealModal({
 
                     {/* Meal type */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Meal Type</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Tipo de Refeição</label>
                         <select
                             value={mealType}
                             onChange={(e) => setMealType(e.target.value as MealType)}
                             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent bg-white"
                         >
-                            <option value="breakfast">Breakfast</option>
-                            <option value="lunch">Lunch</option>
-                            <option value="dinner">Dinner</option>
-                            <option value="snack">Snack</option>
+                            <option value="breakfast">Café da Manhã</option>
+                            <option value="lunch">Almoço</option>
+                            <option value="dinner">Jantar</option>
+                            <option value="snack">Lanche</option>
                         </select>
                     </div>
 
                     {/* Food name */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Food Name *</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Nome do Alimento *</label>
                         <input
                             type="text"
                             value={foodName}
                             onChange={(e) => setFoodName(e.target.value)}
-                            placeholder="e.g. Oatmeal with Blueberries"
+                            placeholder="Ex: Aveia com Mirtilo"
                             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                         />
                     </div>
 
                     {/* Quantity */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Quantity</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Quantidade</label>
                         <input
                             type="text"
                             value={quantity}
                             onChange={(e) => setQuantity(e.target.value)}
-                            placeholder="e.g. 1 bowl (250g)"
+                            placeholder="Ex: 1 tigela (250g)"
                             className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                         />
                     </div>
 
                     {/* Calories */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Calories (kcal) *</label>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Calorias (kcal) *</label>
                         <input
                             type="number"
                             min="0"
@@ -660,7 +660,7 @@ function LogMealModal({
                     {/* Macros grid */}
                     <div className="grid grid-cols-3 gap-3">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Protein (g)</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Proteína (g)</label>
                             <input
                                 type="number"
                                 min="0"
@@ -671,7 +671,7 @@ function LogMealModal({
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Carbs (g)</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Carboidratos (g)</label>
                             <input
                                 type="number"
                                 min="0"
@@ -682,7 +682,7 @@ function LogMealModal({
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Fat (g)</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Gordura (g)</label>
                             <input
                                 type="number"
                                 min="0"
@@ -701,7 +701,7 @@ function LogMealModal({
                         onClick={onClose}
                         className="px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                     >
-                        Cancel
+                        Cancelar
                     </button>
                     <button
                         onClick={handleSave}
@@ -709,7 +709,7 @@ function LogMealModal({
                         className="px-6 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-sm font-bold rounded-lg shadow-lg shadow-[var(--color-primary)]/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                        {saving ? "Saving..." : "Add Food"}
+                        {saving ? "Salvando..." : "Adicionar Alimento"}
                     </button>
                 </div>
             </div>

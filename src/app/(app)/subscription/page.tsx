@@ -9,13 +9,13 @@ export default function SubscriptionPage() {
             <div className="mb-10">
                 <nav aria-label="Breadcrumb" className="flex mb-4">
                     <ol className="flex items-center space-x-2 text-sm text-slate-500">
-                        <li><a className="hover:text-[var(--color-primary)] transition-colors" href="#">Settings</a></li>
+                        <li><a className="hover:text-[var(--color-primary)] transition-colors" href="#">Configurações</a></li>
                         <li><ChevronRight className="w-3 h-3" /></li>
-                        <li className="font-medium text-slate-900">Subscription</li>
+                        <li className="font-medium text-slate-900">Assinatura</li>
                     </ol>
                 </nav>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">Subscription Management</h1>
-                <p className="mt-2 text-slate-600">Manage your billing details and upgrade your plan to unlock more AI features.</p>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900">Gerenciamento de Assinatura</h1>
+                <p className="mt-2 text-slate-600">Gerencie seus dados de cobrança e faça upgrade do seu plano para desbloquear mais recursos de IA.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -24,15 +24,15 @@ export default function SubscriptionPage() {
                     {/* Current Plan Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="p-6">
-                            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Current Plan</h2>
+                            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Plano Atual</h2>
                             <div className="flex items-baseline justify-between mb-2">
-                                <span className="text-2xl font-bold text-slate-900">Basic (Free)</span>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                                <span className="text-2xl font-bold text-slate-900">Básico (Gratuito)</span>
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Ativo</span>
                             </div>
-                            <p className="text-sm text-slate-600 mb-6">Your plan renews automatically on <span className="font-semibold text-slate-900">Never</span>.</p>
+                            <p className="text-sm text-slate-600 mb-6">Seu plano renova automaticamente em <span className="font-semibold text-slate-900">Nunca</span>.</p>
                             <div className="space-y-3 pt-6 border-t border-slate-100">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-slate-500">Meal Plans Generated</span>
+                                    <span className="text-slate-500">Planos de Refeição Gerados</span>
                                     <span className="font-medium text-slate-900">3 / 5</span>
                                 </div>
                                 <div className="w-full bg-slate-100 rounded-full h-1.5">
@@ -41,7 +41,7 @@ export default function SubscriptionPage() {
                             </div>
                             <div className="space-y-3 pt-4">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-slate-500">Storage Used</span>
+                                    <span className="text-slate-500">Armazenamento Usado</span>
                                     <span className="font-medium text-slate-900">120 MB / 500 MB</span>
                                 </div>
                                 <div className="w-full bg-slate-100 rounded-full h-1.5">
@@ -53,18 +53,18 @@ export default function SubscriptionPage() {
 
                     {/* Payment Method */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Payment Method</h2>
+                        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Método de Pagamento</h2>
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-10 h-6 bg-slate-200 rounded flex items-center justify-center text-xs font-bold text-slate-500">VISA</div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-medium text-slate-900">•••• 4242</span>
-                                <span className="text-xs text-slate-500">Expires 12/25</span>
+                                <span className="text-xs text-slate-500">Expira 12/25</span>
                             </div>
-                            <button className="ml-auto text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">Edit</button>
+                            <button className="ml-auto text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium">Editar</button>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-slate-400">
                             <Lock className="w-4 h-4" />
-                            Payments are secure and encrypted.
+                            Pagamentos são seguros e criptografados.
                         </div>
                     </div>
                 </div>
@@ -75,11 +75,11 @@ export default function SubscriptionPage() {
                     <div className="flex justify-center mb-8">
                         <div className="bg-slate-100 p-1 rounded-xl inline-flex relative">
                             <button className="relative z-10 px-8 py-2 text-sm font-medium text-slate-500 transition-colors w-[160px] text-center hover:text-slate-900">
-                                Monthly Billing
+                                Cobrança Mensal
                             </button>
                             <button className="relative z-10 px-8 py-2 text-sm font-medium text-slate-900 bg-white rounded-lg shadow-sm transition-colors w-[160px] text-center flex items-center justify-center gap-2">
-                                Annual Billing
-                                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Save 20%</span>
+                                Cobrança Anual
+                                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">-20%</span>
                             </button>
                         </div>
                     </div>
@@ -90,29 +90,29 @@ export default function SubscriptionPage() {
                         <div className="p-8 md:p-10 grid md:grid-cols-2 gap-10 items-center">
                             <div>
                                 <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[var(--color-primary)]/10 text-[var(--color-primary)] mb-4 border border-[var(--color-primary)]/10">
-                                    RECOMMENDED UPGRADE
+                                    UPGRADE RECOMENDADO
                                 </div>
                                 <h2 className="text-3xl font-bold text-slate-900 mb-2">Caloria Premium</h2>
-                                <p className="text-slate-600 mb-6">Unlock the full power of AI for your health journey.</p>
+                                <p className="text-slate-600 mb-6">Desbloqueie todo o poder da IA para sua jornada de saúde.</p>
                                 <div className="flex items-baseline gap-1 mb-8">
                                     <span className="text-5xl font-bold tracking-tight text-slate-900">$9.99</span>
-                                    <span className="text-lg text-slate-500 font-medium">/ month</span>
+                                    <span className="text-lg text-slate-500 font-medium">/ mês</span>
                                 </div>
-                                <span className="text-sm text-slate-400 block -mt-6 mb-8">Billed $119.88 yearly</span>
+                                <span className="text-sm text-slate-400 block -mt-6 mb-8">Cobrado $119,88 anualmente</span>
                                 <button className="w-full bg-[var(--color-primary)] hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl shadow-lg shadow-blue-500/30 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 group">
-                                    <span>Upgrade to Premium</span>
+                                    <span>Fazer Upgrade para Premium</span>
                                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </button>
-                                <p className="text-center text-xs text-slate-400 mt-4">14-day money-back guarantee. No questions asked.</p>
+                                <p className="text-center text-xs text-slate-400 mt-4">Garantia de reembolso de 14 dias. Sem perguntas.</p>
                             </div>
                             <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
-                                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">What&apos;s included</h3>
+                                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">O que está incluído</h3>
                                 <ul className="space-y-4">
-                                    <FeatureItem text={<><strong className="text-slate-900 font-semibold">AI-Powered Meal Planning</strong> tailored to your metabolism.</>} />
-                                    <FeatureItem text={<><strong className="text-slate-900 font-semibold">Advanced Analytics</strong> &amp; weekly PDF reports.</>} />
-                                    <FeatureItem text="Priority Support from nutritionists." />
-                                    <FeatureItem text="Ad-free experience across all devices." />
-                                    <FeatureItem text="Unlimited photo food logging." />
+                                    <FeatureItem text={<><strong className="text-slate-900 font-semibold">Planejamento de Refeições com IA</strong> personalizado para o seu metabolismo.</>} />
+                                    <FeatureItem text={<><strong className="text-slate-900 font-semibold">Análises Avançadas</strong> &amp; relatórios semanais em PDF.</>} />
+                                    <FeatureItem text="Suporte Prioritário de nutricionistas." />
+                                    <FeatureItem text="Experiência sem anúncios em todos os dispositivos." />
+                                    <FeatureItem text="Registro ilimitado de refeições por foto." />
                                 </ul>
                             </div>
                         </div>
@@ -121,30 +121,30 @@ export default function SubscriptionPage() {
                     {/* Comparison Table */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="px-6 py-4 border-b border-slate-100">
-                            <h3 className="font-semibold text-slate-900">Feature Comparison</h3>
+                            <h3 className="font-semibold text-slate-900">Comparação de Recursos</h3>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="bg-slate-50 text-slate-500">
                                     <tr>
-                                        <th className="px-6 py-3 font-medium w-1/2">Feature</th>
-                                        <th className="px-6 py-3 font-medium text-center">Basic</th>
+                                        <th className="px-6 py-3 font-medium w-1/2">Recurso</th>
+                                        <th className="px-6 py-3 font-medium text-center">Básico</th>
                                         <th className="px-6 py-3 font-medium text-center text-[var(--color-primary)]">Premium</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
                                     <tr>
-                                        <td className="px-6 py-4 text-slate-900 font-medium">Meal Suggestions</td>
-                                        <td className="px-6 py-4 text-center text-slate-500">Limited (3/day)</td>
-                                        <td className="px-6 py-4 text-center text-[var(--color-primary)] font-bold">Unlimited</td>
+                                        <td className="px-6 py-4 text-slate-900 font-medium">Sugestões de Refeições</td>
+                                        <td className="px-6 py-4 text-center text-slate-500">Limitado (3/dia)</td>
+                                        <td className="px-6 py-4 text-center text-[var(--color-primary)] font-bold">Ilimitado</td>
                                     </tr>
                                     <tr>
-                                        <td className="px-6 py-4 text-slate-900 font-medium">Macro Tracking</td>
-                                        <td className="px-6 py-4 text-center text-slate-500">Basic</td>
-                                        <td className="px-6 py-4 text-center text-[var(--color-primary)] font-bold">Advanced</td>
+                                        <td className="px-6 py-4 text-slate-900 font-medium">Rastreamento de Macros</td>
+                                        <td className="px-6 py-4 text-center text-slate-500">Básico</td>
+                                        <td className="px-6 py-4 text-center text-[var(--color-primary)] font-bold">Avançado</td>
                                     </tr>
                                     <tr>
-                                        <td className="px-6 py-4 text-slate-900 font-medium">Data Export</td>
+                                        <td className="px-6 py-4 text-slate-900 font-medium">Exportação de Dados</td>
                                         <td className="px-6 py-4 text-center text-slate-300"><X className="w-4 h-4 mx-auto" /></td>
                                         <td className="px-6 py-4 text-center text-[var(--color-primary)]"><Check className="w-4 h-4 mx-auto" /></td>
                                     </tr>
@@ -158,13 +158,13 @@ export default function SubscriptionPage() {
             {/* Trust Footer */}
             <div className="mt-12 border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
                 <div className="flex gap-6">
-                    <a className="hover:text-slate-800 transition-colors" href="#">Privacy Policy</a>
-                    <a className="hover:text-slate-800 transition-colors" href="#">Terms of Service</a>
+                    <a className="hover:text-slate-800 transition-colors" href="#">Política de Privacidade</a>
+                    <a className="hover:text-slate-800 transition-colors" href="#">Termos de Serviço</a>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-1"><Lock className="w-4 h-4" /> 256-bit SSL Secure</span>
+                    <span className="flex items-center gap-1"><Lock className="w-4 h-4" /> SSL Seguro 256-bit</span>
                     <div className="h-4 w-px bg-slate-300" />
-                    <button className="text-slate-400 hover:text-red-500 transition-colors">Cancel Subscription</button>
+                    <button className="text-slate-400 hover:text-red-500 transition-colors">Cancelar Assinatura</button>
                 </div>
             </div>
         </div>
