@@ -116,15 +116,16 @@ function BioimpedanceContent() {
     // We will hardcode the trend colors based on logic
     const buildMetric = (
         label: string,
-        value: number | null,
+        value: number | null | undefined, // Updated type
         unit: string,
-        prevValue: number | null,
+        prevValue: number | null | undefined, // Updated type
         icon: any,
         color: string,
         bg: string,
         lowerIsBetter = false
     ) => {
-        if (value === null) {
+        // Safe check for current value
+        if (value === null || value === undefined || isNaN(value)) {
             return {
                 label,
                 value: "—",
@@ -139,11 +140,15 @@ function BioimpedanceContent() {
         let detail = "Primeira medição";
         let trend: "up" | "down" | "stable" = "stable";
 
-        if (prevValue !== null) {
+        // Safe check for previous value
+        if (prevValue !== null && prevValue !== undefined && !isNaN(prevValue)) {
             const diff = value - prevValue;
-            trend = diff > 0 ? "up" : diff < 0 ? "down" : "stable";
-            const sign = diff > 0 ? "+" : "";
-            detail = `${sign}${diff.toFixed(1)}${unit} vs anterior`;
+            // Avoid displaying minimal diffs or NaN
+            if (!isNaN(diff)) {
+                trend = diff > 0 ? "up" : diff < 0 ? "down" : "stable";
+                const sign = diff > 0 ? "+" : "";
+                detail = `${sign}${diff.toFixed(1)}${unit} vs anterior`;
+            }
         }
 
         return {
