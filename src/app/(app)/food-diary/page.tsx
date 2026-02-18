@@ -220,6 +220,7 @@ function FoodDiaryContent() {
 
     /* ---- Add Water ---- */
     const handleAddWater = async () => {
+        console.log("clicked water +");
         const nextMl = waterMl + 250;
         setWaterMl(nextMl);
 
@@ -398,6 +399,7 @@ function FoodDiaryContent() {
                                         </span>
                                     </div>
                                     <button
+                                        type="button"
                                         onClick={handleAddWater}
                                         className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center transition-colors shadow-sm shadow-blue-500/30"
                                     >
