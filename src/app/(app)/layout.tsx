@@ -200,7 +200,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             <Bell className="w-5 h-5" />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
                         </button>
-                        <button className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 text-sm">
+                        <button
+                            onClick={() => {
+                                if (pathname.startsWith("/food-diary")) {
+                                    window.dispatchEvent(new CustomEvent("open-log-meal"));
+                                } else {
+                                    router.push("/food-diary?logMeal=1");
+                                }
+                            }}
+                            className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 text-sm"
+                        >
                             <Plus className="w-4 h-4" />
                             <span className="hidden sm:inline">Log Meal</span>
                         </button>
