@@ -257,6 +257,13 @@ export default function CommunityPage() {
         }
     };
 
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+    const showToast = (msg: string) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
     const toggleSave = async (post: Post) => {
         if (!currentUser) return;
 
@@ -275,16 +282,24 @@ export default function CommunityPage() {
         try {
             if (isSaved) {
                 await supabase.from("saved_recipes").delete().match({ post_id: post.id, user_id: currentUser.id });
+                showToast("Receita removida!");
             } else {
                 await supabase.from("saved_recipes").insert({ post_id: post.id, user_id: currentUser.id });
+                showToast("Receita salva!");
             }
         } catch (err) {
             console.error("Error toggling save", err);
+            showToast("Erro ao salvar.");
         }
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-6 relative">
+            {toastMessage && (
+                <div className="fixed top-20 right-5 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-in fade-in slide-in-from-right-5 duration-300">
+                    {toastMessage}
+                </div>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Left Sidebar */}
                 <aside className="hidden lg:block lg:col-span-3 space-y-6">
@@ -323,9 +338,9 @@ export default function CommunityPage() {
                             <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors">
                                 <Heart className="w-5 h-5" /> Meus Desafios
                             </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors">
+                            <a href="/saved-recipes" className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors">
                                 <Bookmark className="w-5 h-5" /> Receitas Salvas
-                            </button>
+                            </a>
                         </nav>
                     </div>
 
