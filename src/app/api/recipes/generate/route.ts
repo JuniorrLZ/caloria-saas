@@ -90,7 +90,8 @@ const FOOD_IMAGES: Record<string, string[]> = {
     "eggs": [
         "https://images.unsplash.com/photo-1525351484163-7529414395d8?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80"
+        "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1513442542250-854d436a73f2?auto=format&fit=crop&w=800&q=80"
     ],
     "pancakes": [
         "https://images.unsplash.com/photo-1528207776546-365bb710ee93?auto=format&fit=crop&w=800&q=80",
@@ -129,6 +130,15 @@ const FOOD_IMAGES: Record<string, string[]> = {
         "https://images.unsplash.com/photo-1516685018646-549198525c1b?auto=format&fit=crop&w=800&q=80"
     ],
 
+    // --- MEAL CONTEXT SPECIFIC ---
+    "snack_salty": [ // Cheese boards, nuts, toast
+        "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1541592106381-b31e967162fd?auto=format&fit=crop&w=800&q=80"
+    ],
+    "snack_sweet": [ // Granola bars, yogurt
+        "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=800&q=80",
+    ],
+
     // --- DEFAULT ---
     "default": [
         "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80", // Meat board
@@ -142,7 +152,7 @@ const FOOD_IMAGES: Record<string, string[]> = {
 // ------------------------------------------------------------------
 
 // Keyword Mapping: Portuguese -> English Search Term
-const KEYWORD_MAP: Record<string, string> = {
+const DISH_MAP: Record<string, string> = {
     // Pasta
     "macarrão": "pasta",
     "espaguete": "spaghetti",
@@ -179,10 +189,10 @@ const KEYWORD_MAP: Record<string, string> = {
     "picanha": "steak",
     "churrasco": "steak",
     "filé": "steak",
-    "moída": "pasta", // Often bolognese -> check context, but default ok
+    "moída": "pasta", // Often bolognese
 
     // Pork
-    "porco": "steak", // Generic meat
+    "porco": "steak",
     "bacon": "breakfast",
 
     // Fish
@@ -230,29 +240,81 @@ const KEYWORD_MAP: Record<string, string> = {
     "biscoito": "cookie"
 };
 
-function deriveSearchQuery(title: string, ingredients: string[]): string {
-    const text = (title + " " + ingredients.join(" ")).toLowerCase();
+const MEAL_MAP: Record<string, string> = {
+    "café": "breakfast",
+    "manhã": "breakfast",
+    "desjejum": "breakfast",
+    "almoço": "lunch",
+    "jantar": "dinner",
+    "refeição": "dinner",
+    "lanche": "snack",
+    "snack": "snack",
+    "sobremesa": "dessert"
+};
 
-    // 1. Exact Match Priority
-    for (const [key, value] of Object.entries(KEYWORD_MAP)) {
+function deriveSearchQuery(title: string, ingredients: string[], tags: string[] = []): string {
+    const text = (title + " " + ingredients.join(" ") + " " + tags.join(" ")).toLowerCase();
+
+    let detectedDish = null;
+    let detectedMeal = null;
+
+    // 1. Detect Dish (Specific)
+    for (const [key, value] of Object.entries(DISH_MAP)) {
         if (text.includes(key)) {
-            // Refinement: If it's "salada de frango", prefer chicken_salad over chicken
-            if (key === "frango" && text.includes("salada")) return "chicken_salad";
-            if (key === "macarrão" && text.includes("bolonhesa")) return "spaghetti";
-            return value;
+            // Refinement exceptions
+            if (key === "frango" && text.includes("salada")) {
+                detectedDish = "chicken_salad";
+            } else if (key === "macarrão" && text.includes("bolonhesa")) {
+                detectedDish = "spaghetti";
+            } else {
+                detectedDish = value;
+            }
+            break; // Found a match, break? Better to check all? No, keys order matters.
         }
     }
 
-    // 2. Fallback logic
+    // 2. Detect Meal Type (Context)
+    for (const [key, value] of Object.entries(MEAL_MAP)) {
+        if (text.includes(key)) {
+            detectedMeal = value;
+            break;
+        }
+    }
+
+    // 3. Combine Logic (Mocking "searchQuery" construction)
+    // Format: "Dish + Context"
+
+    // If we found a specific dish, usually that's strong enough (e.g. "pizza" is pizza regardless of lunch/dinner).
+    if (detectedDish) {
+        // Special tie-breakers
+        if (detectedDish === "eggs" && detectedMeal === "dinner") return "eggs"; // Eggs for dinner is fine
+        if (detectedDish === "cake" && detectedMeal === "breakfast") return "cake"; // Cake is cake
+        return detectedDish;
+    }
+
+    // If no specific dish found, rely on Meal Type
+    if (detectedMeal) {
+        switch (detectedMeal) {
+            case "breakfast": return "breakfast"; // generic breakfast
+            case "dessert": return "dessert"; // generic dessert
+            case "snack":
+                // Try to guess sweet/salty
+                if (text.includes("fruta") || text.includes("iogurte") || text.includes("s doce")) return "snack_sweet";
+                return "snack_salty";
+            case "lunch":
+            case "dinner":
+                return "default"; // generic savory meal
+        }
+    }
+
+    // Fallback
     if (text.includes("doce") || text.includes("açúcar")) return "dessert";
-    if (text.includes("sal") || text.includes("jantar")) return "default";
 
     return "default";
 }
 
 function getUnsplashImage(query: string): string {
     const images = FOOD_IMAGES[query] || FOOD_IMAGES["default"];
-    // Deterministic randomness based on query length to keep it consistent-ish or just random
     return images[Math.floor(Math.random() * images.length)];
 }
 
@@ -373,7 +435,7 @@ export async function POST(request: Request) {
         // ------------------------------------------------------------------
         // 4. SMART IMAGE SEARCH
         // ------------------------------------------------------------------
-        const searchQuery = deriveSearchQuery(recipeData.title, recipeData.ingredients);
+        const searchQuery = deriveSearchQuery(recipeData.title, recipeData.ingredients, recipeData.tags);
         console.log(`[AI] Prompt: "${p}" -> Title: "${recipeData.title}" -> SearchQuery: "${searchQuery}"`);
 
         const imageUrl = getUnsplashImage(searchQuery);
