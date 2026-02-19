@@ -20,6 +20,7 @@ import {
     History,
     TrendingDown,
     TrendingUp,
+    Check,
 } from "lucide-react";
 import { createClient } from "@/lib/supabaseClient";
 
@@ -141,7 +142,12 @@ function FoodDiaryContent() {
         return () => window.removeEventListener("open-log-meal", handler);
     }, []);
 
-    /* Open modal from query param ?logMeal=1 */
+    /* Toast Helper */
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
+    const showToast = (msg: string) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3000);
+    };
     useEffect(() => {
         if (searchParams.get("logMeal")) {
             setModalMealType("breakfast");
@@ -282,7 +288,17 @@ function FoodDiaryContent() {
     const caloriesLeft = Math.max(0, GOALS.calories - totalCalories);
 
     return (
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+            {/* Toast Notification */}
+            {toastMessage && (
+                <div className="fixed top-24 right-5 bg-slate-900/90 backdrop-blur text-white px-4 py-3 rounded-lg shadow-xl z-[100] animate-in fade-in slide-in-from-right-5 duration-300 flex items-center gap-3">
+                    <div className="bg-green-500 rounded-full p-1">
+                        <Check className="w-3 h-3 text-white" />
+                    </div>
+                    <span className="text-sm font-medium">{toastMessage}</span>
+                </div>
+            )}
+
             {/* Date Navigation */}
             <div className="flex flex-col sm:flex-row items-center justify-between mb-8 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                 <div className="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-start">
@@ -516,13 +532,18 @@ function FoodDiaryContent() {
             {/* Weight Modal */}
             {weightModalOpen && (
                 <WeightModal
-                    date={selectedDate}
-                    existingWeight={dailyWeight}
                     onClose={() => setWeightModalOpen(false)}
-                    onSaved={() => {
+                    onSaved={(newWeight) => {
                         setWeightModalOpen(false);
+                        const todayStr = toDateStr(new Date());
+                        const selectedStr = toDateStr(selectedDate);
+                        if (todayStr === selectedStr) {
+                            setDailyWeight(newWeight);
+                        }
+
                         fetchMeals();
                     }}
+                    showToast={showToast}
                 />
             )}
         </div>
@@ -849,33 +870,23 @@ function LogMealModal({
 /*  Weight Modal                                                       */
 /* ------------------------------------------------------------------ */
 function WeightModal({
-    date,
-    existingWeight,
     onClose,
     onSaved,
+    showToast,
 }: {
-    date: Date;
-    existingWeight: number | null;
     onClose: () => void;
-    onSaved: () => void;
+    onSaved: (weight: number) => void;
+    showToast: (msg: string) => void;
 }) {
     const supabase = createClient();
-    const [weight, setWeight] = useState(existingWeight ? existingWeight.toString() : "");
+    // Always start empty if we're forcing "today" logic, unless we want to fetch today's weight. 
+    // But since we removed the input, let's keep it simple: user types new weight.
+    const [weight, setWeight] = useState("");
     const [saving, setSaving] = useState(false);
 
-    // Allow date editing? User requested "Date (default today, editable)".
-    // Since this modal is triggered from a specific date page, it fits best to just confirm "Weight for [Date]".
-    // But per instructions "Data (default hoje, editável)". 
-    // If I allow editing date, I might be modifying a different day than the one currently viewed.
-    // However, usually "Weight Entry" is for the day you are looking at. 
-    // If I let them edit the date, I should probably redirect them or warn them.
-    // Simplest interpretation: The input defaults to the current view's date. If they change it, it saves for THAT date.
-    // The refresher logic (onSaved) calls fetchMeals() which reloads the CURRENT view. 
-    // So if they change the date to yesterday, the current view (today) won't show the change.
-    // I will stick to the date passed as prop for consistency unless explicitly forced otherwise, 
-    // BUT the prompt asks for "date (default hoje, editável)". 
-    // Okay, I will add a date input, initialized to `toDateStr(date)`.
-    const [entryDate, setEntryDate] = useState(toDateStr(date));
+    // Force date to TODAY
+    const today = new Date();
+    const entryDate = toDateStr(today);
 
     const handleSave = async () => {
         if (!weight || isNaN(Number(weight))) return;
@@ -883,17 +894,31 @@ function WeightModal({
 
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+            const weightVal = parseFloat(weight.replace(',', '.'));
+
+            const { data: existing } = await supabase
+                .from("weight_entries")
+                .select("id")
+                .eq("user_id", user.id)
+                .eq("date", entryDate)
+                .maybeSingle();
+
+            const isUpdate = !!existing;
+
             const { error } = await supabase.from("weight_entries").upsert({
                 user_id: user.id,
                 date: entryDate,
-                weight_kg: parseFloat(weight.replace(',', '.'))
+                weight_kg: weightVal,
+                updated_at: new Date().toISOString(),
             }, {
                 onConflict: "user_id,date"
             });
 
             if (!error) {
-                onSaved();
+                showToast(isUpdate ? "Peso do dia atualizado." : "Peso do dia registrado.");
+                onSaved(weightVal);
             } else {
+                console.error("Error saving weight:", error);
                 alert("Erro ao salvar peso");
                 setSaving(false);
             }
@@ -904,24 +929,20 @@ function WeightModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex items-center justify-between p-4 border-b border-slate-100">
-                    <h3 className="font-bold text-slate-900">Registrar Peso</h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-                        <X className="w-5 h-5" />
-                    </button>
+                <div className="flex flex-col p-4 border-b border-slate-100">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-slate-900">Registrar Peso</h3>
+                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <span className="text-xs font-medium text-slate-500 mt-1">
+                        Registro automático para hoje
+                    </span>
                 </div>
                 <div className="p-6">
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Data</label>
-                        <input
-                            type="date"
-                            value={entryDate}
-                            onChange={(e) => setEntryDate(e.target.value)}
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                        />
-                    </div>
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Peso (kg)</label>
+                        <label className="block text-sm font-medium text-slate-900 mb-1.5 sr-only">Peso (kg)</label>
                         <div className="relative">
                             <input
                                 type="number"
@@ -930,22 +951,22 @@ function WeightModal({
                                 onChange={(e) => setWeight(e.target.value)}
                                 placeholder="0.0"
                                 autoFocus
-                                className="w-full border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                className="w-full text-center border-b-2 border-slate-200 focus:border-[var(--color-primary)] py-2 text-4xl font-bold text-slate-900 focus:outline-none bg-transparent"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">kg</span>
+                            <span className="absolute right-12 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-lg">kg</span>
                         </div>
                     </div>
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}
-                            className="flex-1 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="flex-1 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
                         >
                             Cancelar
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saving || !weight}
-                            className="flex-1 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-sm font-bold rounded-lg shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-sm font-bold rounded-xl shadow-lg shadow-[var(--color-primary)]/25 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                             Salvar
