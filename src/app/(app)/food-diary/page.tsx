@@ -15,6 +15,11 @@ import {
     Droplets,
     X,
     Loader2,
+    Scale,
+    Edit2,
+    History,
+    TrendingDown,
+    TrendingUp,
 } from "lucide-react";
 import { createClient } from "@/lib/supabaseClient";
 
@@ -117,6 +122,9 @@ function FoodDiaryContent() {
     });
     const [loading, setLoading] = useState(true);
     const [waterMl, setWaterMl] = useState(0);
+    const [dailyWeight, setDailyWeight] = useState<number | null>(null);
+    const [previousWeight, setPreviousWeight] = useState<number | null>(null);
+    const [weightModalOpen, setWeightModalOpen] = useState(false);
 
     /* Modal state */
     const [modalOpen, setModalOpen] = useState(false);
@@ -153,6 +161,24 @@ function FoodDiaryContent() {
             .eq("date", dateStr)
             .maybeSingle();
         setWaterMl(waterData?.ml || 0);
+
+        /* Fetch Weight (Current Day) */
+        const { data: weightData } = await supabase
+            .from("weight_entries")
+            .select("weight_kg")
+            .eq("date", dateStr)
+            .maybeSingle();
+        setDailyWeight(weightData?.weight_kg || null);
+
+        /* Fetch Previous Weight (Most recent before today) */
+        const { data: prevWeightData } = await supabase
+            .from("weight_entries")
+            .select("weight_kg")
+            .lt("date", dateStr)
+            .order("date", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+        setPreviousWeight(prevWeightData?.weight_kg || null);
 
         const { data: mealsData } = await supabase
             .from("meals")
@@ -422,6 +448,52 @@ function FoodDiaryContent() {
                                     })}
                                 </div>
                             </div>
+
+                            <hr className="border-slate-100 my-6" />
+
+                            {/* Weight Tracker */}
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="font-bold text-slate-800 text-sm">Peso do Dia</h4>
+                                </div>
+                                <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
+                                    {/* Decorative background element */}
+                                    <div className="absolute -right-6 -bottom-6 text-slate-200/50 transform rotate-12 pointer-events-none">
+                                        <Scale className="w-24 h-24" />
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-end gap-2">
+                                            <span className="text-2xl font-bold text-slate-900">
+                                                {dailyWeight ? dailyWeight.toString().replace('.', ',') : "--"}
+                                                <span className="text-sm font-normal text-slate-400 ml-1">kg</span>
+                                            </span>
+                                            {dailyWeight && previousWeight && (
+                                                <span className={`text-xs font-bold mb-1.5 px-1.5 py-0.5 rounded ${Number(dailyWeight) < Number(previousWeight) ? "bg-green-100 text-green-700" :
+                                                    Number(dailyWeight) > Number(previousWeight) ? "bg-red-100 text-red-700" :
+                                                        "bg-slate-200 text-slate-600"
+                                                    }`}>
+                                                    {Number(dailyWeight) < Number(previousWeight) ? <TrendingDown className="w-3 h-3 inline mr-0.5" /> : null}
+                                                    {Number(dailyWeight) > Number(previousWeight) ? <TrendingUp className="w-3 h-3 inline mr-0.5" /> : null}
+                                                    {Math.abs(Number(dailyWeight) - Number(previousWeight)).toFixed(1).replace('.', ',')} kg
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">
+                                            {previousWeight ? `Anterior: ${previousWeight.toString().replace('.', ',')} kg` : "Sem registro anterior"}
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setWeightModalOpen(true)}
+                                        className="relative z-10 w-8 h-8 rounded-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white flex items-center justify-center transition-colors shadow-sm cursor-pointer active:scale-95"
+                                        title={dailyWeight ? "Editar peso" : "Registrar peso"}
+                                    >
+                                        {dailyWeight ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -436,6 +508,19 @@ function FoodDiaryContent() {
                     onClose={() => setModalOpen(false)}
                     onSaved={() => {
                         setModalOpen(false);
+                        fetchMeals();
+                    }}
+                />
+            )}
+
+            {/* Weight Modal */}
+            {weightModalOpen && (
+                <WeightModal
+                    date={selectedDate}
+                    existingWeight={dailyWeight}
+                    onClose={() => setWeightModalOpen(false)}
+                    onSaved={() => {
+                        setWeightModalOpen(false);
                         fetchMeals();
                     }}
                 />
@@ -755,6 +840,117 @@ function LogMealModal({
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                         {saving ? "Salvando..." : "Adicionar Alimento"}
                     </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+/* ------------------------------------------------------------------ */
+/*  Weight Modal                                                       */
+/* ------------------------------------------------------------------ */
+function WeightModal({
+    date,
+    existingWeight,
+    onClose,
+    onSaved,
+}: {
+    date: Date;
+    existingWeight: number | null;
+    onClose: () => void;
+    onSaved: () => void;
+}) {
+    const supabase = createClient();
+    const [weight, setWeight] = useState(existingWeight ? existingWeight.toString() : "");
+    const [saving, setSaving] = useState(false);
+
+    // Allow date editing? User requested "Date (default today, editable)".
+    // Since this modal is triggered from a specific date page, it fits best to just confirm "Weight for [Date]".
+    // But per instructions "Data (default hoje, editável)". 
+    // If I allow editing date, I might be modifying a different day than the one currently viewed.
+    // However, usually "Weight Entry" is for the day you are looking at. 
+    // If I let them edit the date, I should probably redirect them or warn them.
+    // Simplest interpretation: The input defaults to the current view's date. If they change it, it saves for THAT date.
+    // The refresher logic (onSaved) calls fetchMeals() which reloads the CURRENT view. 
+    // So if they change the date to yesterday, the current view (today) won't show the change.
+    // I will stick to the date passed as prop for consistency unless explicitly forced otherwise, 
+    // BUT the prompt asks for "date (default hoje, editável)". 
+    // Okay, I will add a date input, initialized to `toDateStr(date)`.
+    const [entryDate, setEntryDate] = useState(toDateStr(date));
+
+    const handleSave = async () => {
+        if (!weight || isNaN(Number(weight))) return;
+        setSaving(true);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { error } = await supabase.from("weight_entries").upsert({
+                user_id: user.id,
+                date: entryDate,
+                weight_kg: parseFloat(weight.replace(',', '.'))
+            }, {
+                onConflict: "user_id,date"
+            });
+
+            if (!error) {
+                onSaved();
+            } else {
+                alert("Erro ao salvar peso");
+                setSaving(false);
+            }
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                    <h3 className="font-bold text-slate-900">Registrar Peso</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+                <div className="p-6">
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Data</label>
+                        <input
+                            type="date"
+                            value={entryDate}
+                            onChange={(e) => setEntryDate(e.target.value)}
+                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                        />
+                    </div>
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Peso (kg)</label>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={weight}
+                                onChange={(e) => setWeight(e.target.value)}
+                                placeholder="0.0"
+                                autoFocus
+                                className="w-full border border-slate-200 rounded-lg pl-3 pr-10 py-2 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">kg</span>
+                        </div>
+                    </div>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onClose}
+                            className="flex-1 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={saving || !weight}
+                            className="flex-1 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-sm font-bold rounded-lg shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                            Salvar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
