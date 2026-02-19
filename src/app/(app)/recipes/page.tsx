@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Star, Flame, Clock, Heart, ArrowRight, X, ChefHat, PlusCircle, Search, Loader2 } from "lucide-react";
+import { Sparkles, Star, Flame, Clock, Heart, ArrowRight, X, ChefHat, PlusCircle, Search, Loader2, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
@@ -229,14 +229,59 @@ export default function RecipesPage() {
         }
     };
 
-    // Client-side Filtering
-    const filteredRecipes = recipes.filter(r => {
-        const matchesSearch = (r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (r.description && r.description.toLowerCase().includes(searchQuery.toLowerCase())));
-        const matchesFilter = activeFilter ? r.tags?.some(t => t.toLowerCase().includes(activeFilter.toLowerCase())) : true;
+    // --- Search Logic Adjustment ---
+    let displayedRecipes = recipes;
+    let isSuggestionMode = false;
 
-        return matchesSearch && matchesFilter;
-    });
+    if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+
+        // 1. Strong Match: Title
+        const titleMatches = recipes.filter(r => r.title.toLowerCase().includes(q));
+
+        // 2. Medium Match: Tags
+        const tagMatches = recipes.filter(r => r.tags?.some(t => t.toLowerCase().includes(q)));
+
+        // 3. Weak Match: Ingredients
+        const ingredientMatches = recipes.filter(r => r.ingredients?.some(i => i.toLowerCase().includes(q)));
+
+        // Combine logic: Title > Tags > Ingredients
+        const allMatchesSet = new Set([...titleMatches, ...tagMatches, ...ingredientMatches]);
+
+        if (allMatchesSet.size > 0) {
+            // We have relevant matches. Build ordered list.
+            const uniqueList: Recipe[] = [];
+            const seenIds = new Set<string>();
+
+            const add = (arr: Recipe[]) => {
+                arr.forEach(r => {
+                    if (!seenIds.has(r.id)) {
+                        uniqueList.push(r);
+                        seenIds.add(r.id);
+                    }
+                });
+            };
+
+            add(titleMatches);
+            add(tagMatches);
+            add(ingredientMatches);
+
+            displayedRecipes = uniqueList;
+            isSuggestionMode = false;
+        } else {
+            // No matches found -> Show suggestions
+            isSuggestionMode = true;
+            // Show recent recipes as fallback suggestions
+            displayedRecipes = recipes.slice(0, 3);
+        }
+    }
+
+    // Apply Active Filter (Chips) - Must filter the result set (whether exact or suggestion)
+    // Note: If in suggestion mode, this filter might clear the suggestions, which is acceptable behavior 
+    // (user sees "No suggestions for 'X' that are also 'Vegan'")
+    if (activeFilter) {
+        displayedRecipes = displayedRecipes.filter(r => r.tags?.some(t => t === activeFilter));
+    }
 
     return (
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 min-h-screen">
@@ -304,7 +349,7 @@ export default function RecipesPage() {
                         <input
                             type="text"
                             className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg leading-5 bg-white placeholder-slate-400 focus:outline-none focus:placeholder-slate-500 focus:border-blue-300 focus:ring focus:ring-blue-200 sm:text-sm transition duration-150 ease-in-out"
-                            placeholder="Buscar receitas..."
+                            placeholder="Buscar por título ou ingrediente..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -312,22 +357,34 @@ export default function RecipesPage() {
                 </div>
             </div>
 
+            {/* Disclaimer for Suggestion Mode */}
+            {isSuggestionMode && (
+                <div className="max-w-3xl mx-auto mb-8 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3 animate-in slide-in-from-top-2">
+                    <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                    <p className="text-amber-800 text-sm">
+                        Não encontramos receitas exatas para <strong>&quot;{searchQuery}&quot;</strong>. Aqui vão algumas sugestões parecidas ou populares:
+                    </p>
+                </div>
+            )}
+
             {/* Content Area */}
             {loading ? (
                 <div className="flex justify-center items-center py-20">
                     <Loader2 className="w-12 h-12 text-[var(--color-primary)] animate-spin" />
                 </div>
-            ) : filteredRecipes.length === 0 ? (
+            ) : displayedRecipes.length === 0 ? (
                 <div className="text-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-300">
                     <ChefHat className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-slate-900 mb-2">Nenhuma receita encontrada</h3>
+                    <h3 className="text-xl font-medium text-slate-900 mb-2">
+                        {isSuggestionMode ? "Nenhuma sugestão disponível" : "Nenhuma receita encontrada"}
+                    </h3>
                     <p className="text-slate-500 max-w-md mx-auto">
                         Tente ajustar seus filtros ou use nosso Gerador com IA para criar algo novo e delicioso!
                     </p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {filteredRecipes.map(recipe => (
+                    {displayedRecipes.map(recipe => (
                         <RecipeCard
                             key={recipe.id}
                             recipe={recipe}

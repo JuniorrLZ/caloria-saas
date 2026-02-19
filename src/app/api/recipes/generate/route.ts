@@ -5,33 +5,62 @@ const FOOD_IMAGES: Record<string, string[]> = {
     "chicken": [
         "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1614055627253-bfa286390a3c?auto=format&fit=crop&w=800&q=80", // Pollo a la brasa style
+        "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=800&q=80", // Grilled chicken
     ],
     "beef": [
         "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1603048297172-c92544798d5e?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1546964124-0cce460f38ef?auto=format&fit=crop&w=800&q=80", // Steak with herbs
     ],
     "pork": [
         "https://images.unsplash.com/photo-1602494191376-7c60d84c0a52?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1624838644385-d8aa1368fc33?auto=format&fit=crop&w=800&q=80", // Ribs
     ],
     "fish": [
         "https://images.unsplash.com/photo-1519708227418-c8fd9a3a2720?auto=format&fit=crop&w=800&q=80",
         "https://images.unsplash.com/photo-1467003909585-2f8a7270028d?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1534948216015-843143f7aa67?auto=format&fit=crop&w=800&q=80", // Shrimp
+        "https://images.unsplash.com/photo-1535568556730-1c39aca86ce3?auto=format&fit=crop&w=800&q=80", // Salmon fillet
     ],
     "vegan": [
         "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80", // Salad
         "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80", // Green salad
+        "https://images.unsplash.com/photo-1543339308-43e59f6b73a6?auto=format&fit=crop&w=800&q=80", // Tofu bowl
     ],
     "pasta": [
         "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=800&q=80", // Pasta
         "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&w=800&q=80", // Pasta tomato
+        "https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?auto=format&fit=crop&w=800&q=80", // Carbonaraish
     ],
     "breakfast": [
         "https://images.unsplash.com/photo-1525351484163-7529414395d8?auto=format&fit=crop&w=800&q=80", // Toast
         "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=800&q=80", // Eggs
+        "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80", // Pancakes
     ],
     "dessert": [
         "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=800&q=80", // Cake
         "https://images.unsplash.com/photo-1488477181946-6428a029177b?auto=format&fit=crop&w=800&q=80", // Ice cream
+        "https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&w=800&q=80", // Brownie
+    ],
+    "soup": [
+        "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80", // Squash soup
+        "https://images.unsplash.com/photo-1543362906-ac1b452601e0?auto=format&fit=crop&w=800&q=80", // Broth
+    ],
+    "burger": [
+        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80", // Big burger
+        "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80", // Cheeseburger
+    ],
+    "rice": [
+        "https://images.unsplash.com/photo-1516685018646-549198525c1b?auto=format&fit=crop&w=800&q=80", // Rice bowl
+        "https://images.unsplash.com/photo-1539755530862-00f623c00f52?auto=format&fit=crop&w=800&q=80", // Paella-ish
+    ],
+    "pizza": [
+        "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80",
+    ],
+    "appetizer": [
+        "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80", // Fries
     ],
     "default": [
         "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80", // Bowl
@@ -43,14 +72,33 @@ function getUnsplashImage(query: string): string {
     const q = query.toLowerCase();
     let category = "default";
 
-    if (q.includes("frango") || q.includes("galinha") || q.includes("chicken")) category = "chicken";
-    else if (q.includes("carne") || q.includes("bife") || q.includes("beef") || q.includes("steak")) category = "beef";
-    else if (q.includes("porco") || q.includes("bacon") || q.includes("pork")) category = "pork";
-    else if (q.includes("peixe") || q.includes("salmão") || q.includes("atum") || q.includes("fish")) category = "fish";
-    else if (q.includes("vegan") || q.includes("vegetariano") || q.includes("salada") || q.includes("salad")) category = "vegan";
-    else if (q.includes("macarrão") || q.includes("massa") || q.includes("pasta") || q.includes("spaghetti")) category = "pasta";
-    else if (q.includes("café") || q.includes("ovo") || q.includes("panqueca") || q.includes("breakfast")) category = "breakfast";
-    else if (q.includes("doce") || q.includes("sobremesa") || q.includes("chocolate") || q.includes("cake")) category = "dessert";
+    // Explicit Category Matching
+    // Poultry
+    if (q.includes("frango") || q.includes("galinha") || q.includes("chicken") || q.includes("peru") || q.includes("ave")) category = "chicken";
+    // Red Meat
+    else if (q.includes("carne") || q.includes("bife") || q.includes("beef") || q.includes("steak") || q.includes("picadinho") || q.includes("mignon")) category = "beef";
+    // Pork
+    else if (q.includes("porco") || q.includes("bacon") || q.includes("pork") || q.includes("costelinha") || q.includes("linguiça")) category = "pork";
+    // Seafood
+    else if (q.includes("peixe") || q.includes("salmão") || q.includes("atum") || q.includes("fish") || q.includes("pescada") || q.includes("tilápia") || q.includes("camarão") || q.includes("lula")) category = "fish";
+    // Vegetarian / Salad
+    else if (q.includes("vegan") || q.includes("vegetariano") || q.includes("salada") || q.includes("salad") || q.includes("legumes") || q.includes("tofu") || q.includes("grão-de-bico")) category = "vegan";
+    // Pasta
+    else if (q.includes("macarrão") || q.includes("massa") || q.includes("pasta") || q.includes("spaghetti") || q.includes("penne") || q.includes("lasanha") || q.includes("nhoque")) category = "pasta";
+    // Rice
+    else if (q.includes("arroz") || q.includes("risoto") || q.includes("rice") || q.includes("paella")) category = "rice";
+    // Breakfast
+    else if (q.includes("café") || q.includes("ovo") || q.includes("panqueca") || q.includes("breakfast") || q.includes("tapioca") || q.includes("pão") || q.includes("omelete")) category = "breakfast";
+    // Dessert
+    else if (q.includes("doce") || q.includes("sobremesa") || q.includes("chocolate") || q.includes("cake") || q.includes("bolo") || q.includes("fruta") || q.includes("mousse") || q.includes("sorvete")) category = "dessert";
+    // Soup
+    else if (q.includes("sopa") || q.includes("caldo") || q.includes("creme") || q.includes("soup")) category = "soup";
+    // Burger / Sandwich
+    else if (q.includes("hambúrguer") || q.includes("burger") || q.includes("sanduíche") || q.includes("lange")) category = "burger";
+    // Pizza
+    else if (q.includes("pizza") || q.includes("focaccia")) category = "pizza";
+    // Appetizer
+    else if (q.includes("frita") || q.includes("snack") || q.includes("pestisco")) category = "appetizer";
 
     const images = FOOD_IMAGES[category];
     return images[Math.floor(Math.random() * images.length)];
@@ -197,7 +245,7 @@ export async function POST(request: Request) {
             };
         }
 
-        // Add Image
+        // Add Image - Use dynamic keyword matching from logic above in getUnsplashImage
         const imageUrl = getUnsplashImage(recipeData.title);
 
         return NextResponse.json({
