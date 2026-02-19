@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Star, Flame, Clock, Heart, ArrowRight, X, ChefHat, PlusCircle, Search, Loader2, AlertCircle } from "lucide-react";
+import { Sparkles, Star, Flame, Clock, Heart, ArrowRight, X, ChefHat, PlusCircle, Search, Loader2, AlertCircle, History, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
@@ -24,12 +24,32 @@ interface Recipe {
     created_at: string;
 }
 
+interface AiRecipe {
+    id: string;
+    title: string;
+    description: string;
+    ingredients: string[];
+    steps: string[];
+    servings: number;
+    prep_time_minutes: number;
+    tags: string[];
+    macros: {
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+    };
+    image_url: string;
+    created_at: string;
+}
+
 export default function RecipesPage() {
     const supabase = createClient();
     const router = useRouter();
 
     // State
     const [recipes, setRecipes] = useState<Recipe[]>([]);
+    const [aiRecipes, setAiRecipes] = useState<AiRecipe[]>([]); // New history
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [prompt, setPrompt] = useState("");
@@ -43,42 +63,41 @@ export default function RecipesPage() {
 
     // Initial Fetch
     useEffect(() => {
-        fetchRecipes();
-        fetchFavorites();
+        fetchData();
     }, []);
 
-    const fetchRecipes = async () => {
+    const fetchData = async () => {
         setLoading(true);
-        // Fetch user's recipes
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data, error } = await supabase
+        // Fetch user's recipes (Catalog)
+        const recipesReq = supabase
             .from("recipes")
             .select("*")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false });
 
-        if (error) {
-            console.error("Error fetching recipes:", error);
-        } else {
-            setRecipes(data || []);
-        }
-        setLoading(false);
-    };
+        // Fetch AI History
+        const aiRecipesReq = supabase
+            .from("ai_recipes")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false });
 
-    const fetchFavorites = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data } = await supabase
+        // Fetch Favorites
+        const favoritesReq = supabase
             .from("recipe_favorites")
             .select("recipe_id")
             .eq("user_id", user.id);
 
-        if (data) {
-            setFavoriteIds(new Set(data.map(f => f.recipe_id)));
-        }
+        const [recipesRes, aiRecipesRes, favRes] = await Promise.all([recipesReq, aiRecipesReq, favoritesReq]);
+
+        if (recipesRes.data) setRecipes(recipesRes.data);
+        if (aiRecipesRes.data) setAiRecipes(aiRecipesRes.data); // This section
+        if (favRes.data) setFavoriteIds(new Set(favRes.data.map(f => f.recipe_id)));
+
+        setLoading(false);
     };
 
     // Actions
@@ -96,26 +115,24 @@ export default function RecipesPage() {
             if (!res.ok) throw new Error("Failed to generate");
             const recipeData = await res.json();
 
-            // 2. Save to Supabase
+            // 2. Save to "ai_recipes" (History)
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("User not logged in");
 
             const { data, error } = await supabase
-                .from("recipes")
+                .from("ai_recipes")
                 .insert({
                     user_id: user.id,
                     title: recipeData.title,
                     description: recipeData.description,
                     tags: recipeData.tags,
-                    calories: recipeData.calories,
-                    protein_g: recipeData.protein_g,
-                    carbs_g: recipeData.carbs_g,
-                    fat_g: recipeData.fat_g,
+                    macros: recipeData.macros, // JSONB structure
                     prep_time_minutes: recipeData.prep_time_minutes,
-                    ingredients: recipeData.ingredients,
-                    instructions: recipeData.instructions,
+                    servings: recipeData.servings,
+                    ingredients: recipeData.ingredients, // JSONB array
+                    steps: recipeData.steps, // JSONB array (mapped from instructions/steps)
                     image_url: recipeData.image_url,
-                    is_ai_generated: true,
+                    source: 'ai'
                 })
                 .select()
                 .single();
@@ -123,8 +140,11 @@ export default function RecipesPage() {
             if (error) throw error;
 
             // 3. Update State
-            setRecipes([data, ...recipes]);
+            setAiRecipes([data, ...aiRecipes]);
             setPrompt("");
+
+            // Show toast (simulated)
+            alert("Receita gerada e salva no seu histórico com sucesso!");
         } catch (err) {
             console.error("Failed to generate:", err);
             alert("Erro ao gerar receita. Tente novamente.");
@@ -133,12 +153,26 @@ export default function RecipesPage() {
         }
     };
 
-    const toggleFavorite = async (e: React.MouseEvent, recipe: Recipe) => {
+    const deleteAiRecipe = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm("Deseja realmente excluir esta receita do histórico?")) return;
+
+        const { error } = await supabase
+            .from("ai_recipes")
+            .delete()
+            .eq("id", id);
+
+        if (!error) {
+            setAiRecipes(aiRecipes.filter(r => r.id !== id));
+        }
+    };
+
+    const toggleFavorite = async (e: React.MouseEvent, recipeId: string) => {
         e.stopPropagation();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const isFav = favoriteIds.has(recipe.id);
+        const isFav = favoriteIds.has(recipeId);
 
         if (isFav) {
             // Remove
@@ -146,26 +180,44 @@ export default function RecipesPage() {
                 .from("recipe_favorites")
                 .delete()
                 .eq("user_id", user.id)
-                .eq("recipe_id", recipe.id);
+                .eq("recipe_id", recipeId);
 
             if (!error) {
                 const next = new Set(favoriteIds);
-                next.delete(recipe.id);
+                next.delete(recipeId);
                 setFavoriteIds(next);
             }
         } else {
             // Add
             const { error } = await supabase
                 .from("recipe_favorites")
-                .insert({ user_id: user.id, recipe_id: recipe.id });
+                .insert({ user_id: user.id, recipe_id: recipeId });
 
             if (!error) {
                 const next = new Set(favoriteIds);
-                next.add(recipe.id);
+                next.add(recipeId);
                 setFavoriteIds(next);
             }
         }
     };
+
+    const convertAiToRecipe = (ai: AiRecipe): Recipe => ({
+        id: ai.id,
+        user_id: "",
+        title: ai.title,
+        description: ai.description,
+        tags: ai.tags,
+        calories: ai.macros.calories,
+        protein_g: ai.macros.protein,
+        carbs_g: ai.macros.carbs,
+        fat_g: ai.macros.fat,
+        prep_time_minutes: ai.prep_time_minutes,
+        ingredients: ai.ingredients,
+        instructions: ai.steps,
+        image_url: ai.image_url,
+        is_ai_generated: true,
+        created_at: ai.created_at
+    });
 
     const addToDiary = async () => {
         if (!selectedRecipe) return;
@@ -176,7 +228,6 @@ export default function RecipesPage() {
 
             const today = new Date().toISOString().split("T")[0];
 
-            // 1. Find or create a default meal for today
             let mealId: string;
             const { data: meals } = await supabase
                 .from("meals")
@@ -190,19 +241,13 @@ export default function RecipesPage() {
             } else {
                 const { data: newMeal, error: mealError } = await supabase
                     .from("meals")
-                    .insert({
-                        user_id: user.id,
-                        meal_type: "Almoço",
-                        eaten_at: today
-                    })
+                    .insert({ user_id: user.id, meal_type: "Almoço", eaten_at: today })
                     .select()
                     .single();
-
                 if (mealError || !newMeal) throw mealError;
                 mealId = newMeal.id;
             }
 
-            // 2. Insert meal_item
             const { error: itemError } = await supabase
                 .from("meal_items")
                 .insert({
@@ -229,59 +274,14 @@ export default function RecipesPage() {
         }
     };
 
-    // --- Search Logic Adjustment ---
-    let displayedRecipes = recipes;
-    let isSuggestionMode = false;
+    // Client-side Filtering (Catalog)
+    const filteredRecipes = recipes.filter(r => {
+        const matchesSearch = (r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (r.description && r.description.toLowerCase().includes(searchQuery.toLowerCase())));
+        const matchesFilter = activeFilter ? r.tags?.some(t => t.toLowerCase().includes(activeFilter.toLowerCase())) : true;
 
-    if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-
-        // 1. Strong Match: Title
-        const titleMatches = recipes.filter(r => r.title.toLowerCase().includes(q));
-
-        // 2. Medium Match: Tags
-        const tagMatches = recipes.filter(r => r.tags?.some(t => t.toLowerCase().includes(q)));
-
-        // 3. Weak Match: Ingredients
-        const ingredientMatches = recipes.filter(r => r.ingredients?.some(i => i.toLowerCase().includes(q)));
-
-        // Combine logic: Title > Tags > Ingredients
-        const allMatchesSet = new Set([...titleMatches, ...tagMatches, ...ingredientMatches]);
-
-        if (allMatchesSet.size > 0) {
-            // We have relevant matches. Build ordered list.
-            const uniqueList: Recipe[] = [];
-            const seenIds = new Set<string>();
-
-            const add = (arr: Recipe[]) => {
-                arr.forEach(r => {
-                    if (!seenIds.has(r.id)) {
-                        uniqueList.push(r);
-                        seenIds.add(r.id);
-                    }
-                });
-            };
-
-            add(titleMatches);
-            add(tagMatches);
-            add(ingredientMatches);
-
-            displayedRecipes = uniqueList;
-            isSuggestionMode = false;
-        } else {
-            // No matches found -> Show suggestions
-            isSuggestionMode = true;
-            // Show recent recipes as fallback suggestions
-            displayedRecipes = recipes.slice(0, 3);
-        }
-    }
-
-    // Apply Active Filter (Chips) - Must filter the result set (whether exact or suggestion)
-    // Note: If in suggestion mode, this filter might clear the suggestions, which is acceptable behavior 
-    // (user sees "No suggestions for 'X' that are also 'Vegan'")
-    if (activeFilter) {
-        displayedRecipes = displayedRecipes.filter(r => r.tags?.some(t => t === activeFilter));
-    }
+        return matchesSearch && matchesFilter;
+    });
 
     return (
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8 min-h-screen">
@@ -357,44 +357,67 @@ export default function RecipesPage() {
                 </div>
             </div>
 
-            {/* Disclaimer for Suggestion Mode */}
-            {isSuggestionMode && (
-                <div className="max-w-3xl mx-auto mb-8 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3 animate-in slide-in-from-top-2">
-                    <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                    <p className="text-amber-800 text-sm">
-                        Não encontramos receitas exatas para <strong>&quot;{searchQuery}&quot;</strong>. Aqui vão algumas sugestões parecidas ou populares:
-                    </p>
+            {/* AI History SECTION */}
+            {aiRecipes.length > 0 && (
+                <div className="mb-12 animate-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex items-center gap-2 mb-6 text-slate-800">
+                        <History className="w-5 h-5 text-[var(--color-primary)]" />
+                        <h2 className="text-xl font-bold">Generadas por você</h2>
+                        <span className="text-xs font-semibold bg-slate-100 px-2 py-0.5 rounded-full text-slate-600">{aiRecipes.length}</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {aiRecipes.map(ai => (
+                            <div key={ai.id} className="relative group">
+                                <RecipeCard
+                                    recipe={convertAiToRecipe(ai)}
+                                    isFavorite={favoriteIds.has(ai.id)}
+                                    // Mapping delete function which is unrelated to Favorite logic, but placed on the card usually
+                                    onToggleFavorite={(e) => toggleFavorite(e, ai.id)}
+                                    onClick={() => setSelectedRecipe(convertAiToRecipe(ai))}
+                                />
+                                <button
+                                    onClick={(e) => deleteAiRecipe(ai.id, e)}
+                                    className="absolute top-3 right-12 p-2 bg-white/30 backdrop-blur-md rounded-full text-white hover:text-red-500 hover:bg-white transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                                    title="Excluir do Histórico"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-8 border-b border-slate-200" />
                 </div>
             )}
 
-            {/* Content Area */}
-            {loading ? (
-                <div className="flex justify-center items-center py-20">
-                    <Loader2 className="w-12 h-12 text-[var(--color-primary)] animate-spin" />
-                </div>
-            ) : displayedRecipes.length === 0 ? (
-                <div className="text-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-300">
-                    <ChefHat className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-slate-900 mb-2">
-                        {isSuggestionMode ? "Nenhuma sugestão disponível" : "Nenhuma receita encontrada"}
-                    </h3>
-                    <p className="text-slate-500 max-w-md mx-auto">
-                        Tente ajustar seus filtros ou use nosso Gerador com IA para criar algo novo e delicioso!
-                    </p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {displayedRecipes.map(recipe => (
-                        <RecipeCard
-                            key={recipe.id}
-                            recipe={recipe}
-                            isFavorite={favoriteIds.has(recipe.id)}
-                            onToggleFavorite={(e) => toggleFavorite(e, recipe)}
-                            onClick={() => setSelectedRecipe(recipe)}
-                        />
-                    ))}
-                </div>
-            )}
+            {/* Catalog List */}
+            <div className="mb-6">
+                <h2 className="text-xl font-bold text-slate-800 mb-6">Catálogo de Receitas</h2>
+                {loading ? (
+                    <div className="flex justify-center items-center py-20">
+                        <Loader2 className="w-12 h-12 text-[var(--color-primary)] animate-spin" />
+                    </div>
+                ) : filteredRecipes.length === 0 ? (
+                    <div className="text-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-300">
+                        <ChefHat className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-medium text-slate-900 mb-2">
+                            Nenhuma receita encontrada
+                        </h3>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                        {filteredRecipes.map(recipe => (
+                            <RecipeCard
+                                key={recipe.id}
+                                recipe={recipe}
+                                isFavorite={favoriteIds.has(recipe.id)}
+                                onToggleFavorite={(e) => toggleFavorite(e, recipe.id)}
+                                onClick={() => setSelectedRecipe(recipe)}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Modal */}
             {selectedRecipe && (
@@ -422,15 +445,15 @@ export default function RecipesPage() {
                                 <div>
                                     <h2 className="text-2xl font-bold text-slate-900 mb-2">{selectedRecipe.title}</h2>
                                     <div className="flex gap-2 mb-4">
-                                        {selectedRecipe.tags?.map(tag => (
-                                            <span key={tag} className="px-2.5 py-1 bg-slate-100 rounded-md text-xs font-semibold text-slate-600">
+                                        {selectedRecipe.tags?.map((tag, i) => (
+                                            <span key={i} className="px-2.5 py-1 bg-slate-100 rounded-md text-xs font-semibold text-slate-600">
                                                 {tag}
                                             </span>
                                         ))}
                                     </div>
                                 </div>
                                 <button
-                                    onClick={(e) => toggleFavorite(e as any, selectedRecipe)}
+                                    onClick={(e) => toggleFavorite(e as any, selectedRecipe.id)}
                                     className={`p-2 rounded-full transition-colors ${favoriteIds.has(selectedRecipe.id) ? "text-red-500 bg-red-50" : "text-slate-400 hover:text-red-500 hover:bg-slate-50"}`}
                                 >
                                     <Heart className={`w-6 h-6 ${favoriteIds.has(selectedRecipe.id) ? "fill-current" : ""}`} />
@@ -466,7 +489,7 @@ export default function RecipesPage() {
                                         <div className="w-1 h-6 bg-[var(--color-primary)] rounded-full" /> Ingredientes
                                     </h3>
                                     <ul className="space-y-3">
-                                        {selectedRecipe.ingredients?.map((ing: string, i: number) => (
+                                        {selectedRecipe.ingredients?.map((ing, i) => (
                                             <li key={i} className="flex items-start gap-3 text-slate-700">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-2 flex-shrink-0" />
                                                 <span>{ing}</span>
@@ -517,17 +540,18 @@ export default function RecipesPage() {
     );
 }
 
+// Reusable card component
 function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick }: {
     recipe: Recipe;
     isFavorite: boolean;
     onToggleFavorite: (e: React.MouseEvent) => void;
     onClick: () => void;
 }) {
-    // Calculando porcentagens relativas para barra de macros visual
-    const total = recipe.protein_g + recipe.fat_g + recipe.carbs_g || 1;
-    const pP = (recipe.protein_g / total) * 100;
-    const pF = (recipe.fat_g / total) * 100;
-    const pC = (recipe.carbs_g / total) * 100;
+    // Check for calculated macros and calculate percentage
+    const total = (recipe.protein_g || 0) + (recipe.fat_g || 0) + (recipe.carbs_g || 0) || 1;
+    const pP = ((recipe.protein_g || 0) / total) * 100;
+    const pF = ((recipe.fat_g || 0) / total) * 100;
+    const pC = ((recipe.carbs_g || 0) / total) * 100;
 
     return (
         <article
@@ -542,8 +566,8 @@ function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick }: {
                 )}
 
                 <div className="absolute top-3 left-3 flex flex-wrap gap-2 pr-12">
-                    {recipe.tags?.slice(0, 2).map(tag => (
-                        <span key={tag} className="px-2.5 py-1 bg-white/90 backdrop-blur-md rounded-lg text-xs font-bold text-slate-700 shadow-sm">
+                    {recipe.tags?.slice(0, 2).map((tag, i) => (
+                        <span key={i} className="px-2.5 py-1 bg-white/90 backdrop-blur-md rounded-lg text-xs font-bold text-slate-700 shadow-sm">
                             {tag}
                         </span>
                     ))}
