@@ -3,23 +3,23 @@
 import { useEffect, useState } from "react";
 import { Sparkles, Star, Flame, Clock, Heart, ArrowRight, X, ChefHat, PlusCircle, Search, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabaseClient";
-import { generateRecipeFromPrompt, RecipeDTO } from "@/lib/recipe-ai";
 import { useRouter } from "next/navigation";
 
-// Database Types (simplified)
+// Database Type complying with new schema
 interface Recipe {
     id: string;
+    user_id: string;
     title: string;
     description: string;
     tags: string[];
     calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    prep_time_min: number;
-    ingredients: string[] | any; // JSONB
-    steps: string[] | any;       // JSONB
-    image_url: string | null;
+    protein_g: number;
+    carbs_g: number;
+    fat_g: number;
+    prep_time_minutes: number;
+    ingredients: string[];
+    instructions: string[];
+    image_url: string;
     is_ai_generated: boolean;
     created_at: string;
 }
@@ -35,7 +35,7 @@ export default function RecipesPage() {
     const [prompt, setPrompt] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
-    const [savedRecipeIds, setSavedRecipeIds] = useState<Set<string>>(new Set());
+    const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
 
     // Modal State
     const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -44,16 +44,20 @@ export default function RecipesPage() {
     // Initial Fetch
     useEffect(() => {
         fetchRecipes();
-        fetchSavedRecipes();
+        fetchFavorites();
     }, []);
 
     const fetchRecipes = async () => {
         setLoading(true);
+        // Fetch user's recipes
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const { data, error } = await supabase
             .from("recipes")
             .select("*")
-            .order("created_at", { ascending: false })
-            .limit(50);
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false });
 
         if (error) {
             console.error("Error fetching recipes:", error);
@@ -63,17 +67,17 @@ export default function RecipesPage() {
         setLoading(false);
     };
 
-    const fetchSavedRecipes = async () => {
+    const fetchFavorites = async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         const { data } = await supabase
-            .from("saved_recipes")
+            .from("recipe_favorites")
             .select("recipe_id")
             .eq("user_id", user.id);
 
         if (data) {
-            setSavedRecipeIds(new Set(data.map(r => r.recipe_id)));
+            setFavoriteIds(new Set(data.map(f => f.recipe_id)));
         }
     };
 
@@ -82,8 +86,15 @@ export default function RecipesPage() {
         if (!prompt.trim()) return;
         setGenerating(true);
         try {
-            // 1. Generate via "AI" (Mock)
-            const recipeData = await generateRecipeFromPrompt(prompt);
+            // 1. Call Internal API for "Real AI" Generation
+            const res = await fetch("/api/recipes/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt })
+            });
+
+            if (!res.ok) throw new Error("Failed to generate");
+            const recipeData = await res.json();
 
             // 2. Save to Supabase
             const { data: { user } } = await supabase.auth.getUser();
@@ -97,15 +108,14 @@ export default function RecipesPage() {
                     description: recipeData.description,
                     tags: recipeData.tags,
                     calories: recipeData.calories,
-                    protein: recipeData.protein,
-                    carbs: recipeData.carbs,
-                    fat: recipeData.fat,
-                    prep_time_min: recipeData.prep_time_min,
+                    protein_g: recipeData.protein_g,
+                    carbs_g: recipeData.carbs_g,
+                    fat_g: recipeData.fat_g,
+                    prep_time_minutes: recipeData.prep_time_minutes,
                     ingredients: recipeData.ingredients,
-                    steps: recipeData.steps,
+                    instructions: recipeData.instructions,
                     image_url: recipeData.image_url,
                     is_ai_generated: true,
-                    is_public: false // User generated is private by default? Let's say yes.
                 })
                 .select()
                 .single();
@@ -123,36 +133,36 @@ export default function RecipesPage() {
         }
     };
 
-    const toggleSave = async (e: React.MouseEvent, recipe: Recipe) => {
+    const toggleFavorite = async (e: React.MouseEvent, recipe: Recipe) => {
         e.stopPropagation();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const isSaved = savedRecipeIds.has(recipe.id);
+        const isFav = favoriteIds.has(recipe.id);
 
-        if (isSaved) {
+        if (isFav) {
             // Remove
             const { error } = await supabase
-                .from("saved_recipes")
+                .from("recipe_favorites")
                 .delete()
                 .eq("user_id", user.id)
                 .eq("recipe_id", recipe.id);
 
             if (!error) {
-                const next = new Set(savedRecipeIds);
+                const next = new Set(favoriteIds);
                 next.delete(recipe.id);
-                setSavedRecipeIds(next);
+                setFavoriteIds(next);
             }
         } else {
             // Add
             const { error } = await supabase
-                .from("saved_recipes")
+                .from("recipe_favorites")
                 .insert({ user_id: user.id, recipe_id: recipe.id });
 
             if (!error) {
-                const next = new Set(savedRecipeIds);
+                const next = new Set(favoriteIds);
                 next.add(recipe.id);
-                setSavedRecipeIds(next);
+                setFavoriteIds(next);
             }
         }
     };
@@ -166,10 +176,8 @@ export default function RecipesPage() {
 
             const today = new Date().toISOString().split("T")[0];
 
-            // 1. Find or create a default "Almoço" or generic meal for today
-            // For simplicity, let's look for any meal today, or create "Refeição Personalizada"
+            // 1. Find or create a default meal for today
             let mealId: string;
-
             const { data: meals } = await supabase
                 .from("meals")
                 .select("id")
@@ -180,12 +188,11 @@ export default function RecipesPage() {
             if (meals && meals.length > 0) {
                 mealId = meals[0].id;
             } else {
-                // Create new meal
                 const { data: newMeal, error: mealError } = await supabase
                     .from("meals")
                     .insert({
                         user_id: user.id,
-                        meal_type: "Almoço", // Defaulting to lunch for simplicity
+                        meal_type: "Almoço",
                         eaten_at: today
                     })
                     .select()
@@ -204,16 +211,16 @@ export default function RecipesPage() {
                     food_name: selectedRecipe.title,
                     quantity: "1 porção",
                     calories: selectedRecipe.calories,
-                    protein: selectedRecipe.protein,
-                    carbs: selectedRecipe.carbs,
-                    fat: selectedRecipe.fat
+                    protein: selectedRecipe.protein_g,
+                    carbs: selectedRecipe.carbs_g,
+                    fat: selectedRecipe.fat_g
                 });
 
             if (itemError) throw itemError;
 
-            alert("Adicionado ao diário com sucesso!");
-            setSelectedRecipe(null); // Close modal
-            router.push("/food-diary"); // Optional redirect
+            alert("Receita adicionada ao diário!");
+            setSelectedRecipe(null);
+            router.push("/food-diary");
         } catch (err) {
             console.error("Error logging meal:", err);
             alert("Erro ao adicionar ao diário.");
@@ -222,16 +229,11 @@ export default function RecipesPage() {
         }
     };
 
-    // Filtering
+    // Client-side Filtering
     const filteredRecipes = recipes.filter(r => {
         const matchesSearch = (r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             (r.description && r.description.toLowerCase().includes(searchQuery.toLowerCase())));
-        const matchesFilter = activeFilter ? r.tags?.includes(activeFilter) : true; // Exact match might be tricky if tags are "Alta Proteína", activeFilter is "Alta Proteína".
-
-        // Let's make filters broadly match if tag contains part of filter string?
-        // But chips are specific: "Alta Proteína", "Keto".
-        // If my generated recipe has exact tag "Alta Proteína", it works.
-        // My mock generator uses compatible tags.
+        const matchesFilter = activeFilter ? r.tags?.some(t => t.toLowerCase().includes(activeFilter.toLowerCase())) : true;
 
         return matchesSearch && matchesFilter;
     });
@@ -329,8 +331,8 @@ export default function RecipesPage() {
                         <RecipeCard
                             key={recipe.id}
                             recipe={recipe}
-                            isSaved={savedRecipeIds.has(recipe.id)}
-                            onToggleSave={(e) => toggleSave(e, recipe)}
+                            isFavorite={favoriteIds.has(recipe.id)}
+                            onToggleFavorite={(e) => toggleFavorite(e, recipe)}
                             onClick={() => setSelectedRecipe(recipe)}
                         />
                     ))}
@@ -371,10 +373,10 @@ export default function RecipesPage() {
                                     </div>
                                 </div>
                                 <button
-                                    onClick={(e) => toggleSave(e as any, selectedRecipe)}
-                                    className={`p-2 rounded-full transition-colors ${savedRecipeIds.has(selectedRecipe.id) ? "text-red-500 bg-red-50" : "text-slate-400 hover:text-red-500 hover:bg-slate-50"}`}
+                                    onClick={(e) => toggleFavorite(e as any, selectedRecipe)}
+                                    className={`p-2 rounded-full transition-colors ${favoriteIds.has(selectedRecipe.id) ? "text-red-500 bg-red-50" : "text-slate-400 hover:text-red-500 hover:bg-slate-50"}`}
                                 >
-                                    <Heart className={`w-6 h-6 ${savedRecipeIds.has(selectedRecipe.id) ? "fill-current" : ""}`} />
+                                    <Heart className={`w-6 h-6 ${favoriteIds.has(selectedRecipe.id) ? "fill-current" : ""}`} />
                                 </button>
                             </div>
 
@@ -389,15 +391,15 @@ export default function RecipesPage() {
                                 </div>
                                 <div className="text-center border-l border-slate-200">
                                     <div className="text-xs text-slate-500 mb-1">Proteína</div>
-                                    <div className="font-bold text-slate-900">{selectedRecipe.protein}g</div>
+                                    <div className="font-bold text-slate-900">{selectedRecipe.protein_g}g</div>
                                 </div>
                                 <div className="text-center border-l border-slate-200">
                                     <div className="text-xs text-slate-500 mb-1">Carb</div>
-                                    <div className="font-bold text-slate-900">{selectedRecipe.carbs}g</div>
+                                    <div className="font-bold text-slate-900">{selectedRecipe.carbs_g}g</div>
                                 </div>
                                 <div className="text-center border-l border-slate-200">
                                     <div className="text-xs text-slate-500 mb-1">Gordura</div>
-                                    <div className="font-bold text-slate-900">{selectedRecipe.fat}g</div>
+                                    <div className="font-bold text-slate-900">{selectedRecipe.fat_g}g</div>
                                 </div>
                             </div>
 
@@ -407,7 +409,7 @@ export default function RecipesPage() {
                                         <div className="w-1 h-6 bg-[var(--color-primary)] rounded-full" /> Ingredientes
                                     </h3>
                                     <ul className="space-y-3">
-                                        {Array.isArray(selectedRecipe.ingredients) && selectedRecipe.ingredients.map((ing: string, i: number) => (
+                                        {selectedRecipe.ingredients?.map((ing: string, i: number) => (
                                             <li key={i} className="flex items-start gap-3 text-slate-700">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-2 flex-shrink-0" />
                                                 <span>{ing}</span>
@@ -421,7 +423,7 @@ export default function RecipesPage() {
                                         <div className="w-1 h-6 bg-amber-500 rounded-full" /> Modo de Preparo
                                     </h3>
                                     <div className="space-y-6">
-                                        {Array.isArray(selectedRecipe.steps) && selectedRecipe.steps.map((step: string, i: number) => (
+                                        {selectedRecipe.instructions?.map((step: string, i: number) => (
                                             <div key={i} className="flex gap-4">
                                                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-sm">
                                                     {i + 1}
@@ -458,17 +460,17 @@ export default function RecipesPage() {
     );
 }
 
-function RecipeCard({ recipe, isSaved, onToggleSave, onClick }: {
+function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick }: {
     recipe: Recipe;
-    isSaved: boolean;
-    onToggleSave: (e: React.MouseEvent) => void;
+    isFavorite: boolean;
+    onToggleFavorite: (e: React.MouseEvent) => void;
     onClick: () => void;
 }) {
     // Calculando porcentagens relativas para barra de macros visual
-    const total = recipe.protein + recipe.fat + recipe.carbs || 1;
-    const pP = (recipe.protein / total) * 100;
-    const pF = (recipe.fat / total) * 100;
-    const pC = (recipe.carbs / total) * 100;
+    const total = recipe.protein_g + recipe.fat_g + recipe.carbs_g || 1;
+    const pP = (recipe.protein_g / total) * 100;
+    const pF = (recipe.fat_g / total) * 100;
+    const pC = (recipe.carbs_g / total) * 100;
 
     return (
         <article
@@ -496,11 +498,11 @@ function RecipeCard({ recipe, isSaved, onToggleSave, onClick }: {
                 </div>
 
                 <button
-                    onClick={onToggleSave}
-                    className={`absolute top-3 right-3 p-2 backdrop-blur-md rounded-full transition-colors shadow-sm ${isSaved ? "bg-white text-red-500" : "bg-white/30 text-white hover:bg-white hover:text-red-500"
+                    onClick={onToggleFavorite}
+                    className={`absolute top-3 right-3 p-2 backdrop-blur-md rounded-full transition-colors shadow-sm ${isFavorite ? "bg-white text-red-500" : "bg-white/30 text-white hover:bg-white hover:text-red-500"
                         }`}
                 >
-                    <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
+                    <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
                 </button>
             </div>
 
@@ -511,8 +513,8 @@ function RecipeCard({ recipe, isSaved, onToggleSave, onClick }: {
 
                 <div className="flex items-center gap-4 text-xs font-medium text-slate-500 mb-4 uppercase tracking-wide">
                     <div className="flex items-center gap-1"><Flame className="w-3.5 h-3.5 text-orange-500" /> {recipe.calories} KCAL</div>
-                    {recipe.prep_time_min > 0 && (
-                        <div className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-blue-500" /> {recipe.prep_time_min} MIN</div>
+                    {recipe.prep_time_minutes > 0 && (
+                        <div className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-blue-500" /> {recipe.prep_time_minutes} MIN</div>
                     )}
                 </div>
 
@@ -523,9 +525,9 @@ function RecipeCard({ recipe, isSaved, onToggleSave, onClick }: {
                         <div className="bg-blue-400" style={{ width: `${pC}%` }} />
                     </div>
                     <div className="flex justify-between text-xs font-bold">
-                        <span className="text-slate-700">{recipe.protein}g Prot</span>
-                        <span className="text-slate-700">{recipe.fat}g Gord</span>
-                        <span className="text-slate-700">{recipe.carbs}g Carb</span>
+                        <span className="text-slate-700">{recipe.protein_g}g Prot</span>
+                        <span className="text-slate-700">{recipe.fat_g}g Gord</span>
+                        <span className="text-slate-700">{recipe.carbs_g}g Carb</span>
                     </div>
                 </div>
             </div>
